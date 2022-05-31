@@ -73,7 +73,8 @@ class BaseController(metaclass=ABCMeta):
             'instantaneous': self.get_safe_action_instantaneous,
             'safe_velocity': self.get_safe_velocity_action,
             'feasible_accel': lambda _, accel: self.get_feasible_action(accel),
-            'obey_speed_limit': self.get_obey_speed_limit_action
+            'obey_speed_limit': self.get_obey_speed_limit_action,
+            'hit_test_action':self.hit_test_action
         }
         self.failsafes = []
         if failsafe_list:
@@ -145,10 +146,10 @@ class BaseController(metaclass=ABCMeta):
         env.k.vehicle.update_accel(self.veh_id, accel, noise=False, failsafe=False)
         accel_no_noise_with_failsafe = accel
 
-        for failsafe in self.failsafes:
-            accel_no_noise_with_failsafe = failsafe(env, accel_no_noise_with_failsafe)
-
-        env.k.vehicle.update_accel(self.veh_id, accel_no_noise_with_failsafe, noise=False, failsafe=True)
+        # for failsafe in self.failsafes:
+        #     accel_no_noise_with_failsafe = failsafe(env, accel_no_noise_with_failsafe)
+        #
+        # env.k.vehicle.update_accel(self.veh_id, accel_no_noise_with_failsafe, noise=False, failsafe=True)
 
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
@@ -378,4 +379,37 @@ class BaseController(metaclass=ABCMeta):
                     "deceleration. Feasible acceleration clipping applied.\n"
                     "=====================================".format(self.veh_id))
 
+        return action
+
+    def hit_test_action(self,env,action):
+        if env.k.vehicle.num_vehicles == 1:
+            return action
+
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+
+        # if there is no other vehicle in the lane, all actions are safe
+        if lead_id is None:
+            return action
+
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        sim_step = env.sim_step
+        next_vel = this_vel + action * sim_step
+        h = env.k.vehicle.get_headway(self.veh_id)
+
+        if next_vel > 0:
+            # the second and third terms cover (conservatively) the extra
+            # distance the vehicle will cover before it fully decelerates
+            if h < sim_step * next_vel + this_vel * 1e-3 + \
+                    0.5 * this_vel * sim_step:
+                # if the vehicle will crash into the vehicle ahead of it in the
+                # next time step (assuming the vehicle ahead of it is not
+                # moving), then stop immediately
+                if self.display_warnings:
+                    print(
+                        "=====================================\n"
+                        "Vehicle {} is about to crash. Record "
+                        "clipping applied.\n"
+                        "=====================================".format(self.veh_id))
+
+            return action
         return action

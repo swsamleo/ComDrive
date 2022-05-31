@@ -219,12 +219,18 @@ class TraCISimulation(KernelSimulation):
                     sumo_call.append("true")
 
                 # set the time it takes for a gridlock teleport to occur
-                sumo_call.append("--time-to-teleport")
-                sumo_call.append(str(int(sim_params.teleport_time)))
+                # sumo_call.append("--time-to-teleport")
+                # sumo_call.append(str(int(sim_params.teleport_time)))
 
                 # check collisions at intersections
                 sumo_call.append("--collision.check-junctions")
                 sumo_call.append("true")
+                sumo_call.append("--collision.action")
+                sumo_call.append("none")
+                # sumo_call.append("--collision-output")
+                # sumo_call.append("collision")
+                sumo_call.append("--default.emergencydecel")
+                sumo_call.append("1000")
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(network.cfg))

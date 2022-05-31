@@ -10,8 +10,10 @@ model to return a vehicle acceleration.
 """
 import math
 import numpy as np
+import copy
 
 from flow.controllers.base_controller import BaseController
+from flow.controllers.hit_history import Hit_History
 
 
 class CFMController(BaseController):
@@ -685,3 +687,170 @@ class BandoFTLController(BaseController):
         s_dot = v_l - v
         u = self.alpha * (v_h - v) + self.beta * s_dot/(s**2)
         return u
+
+
+
+class Hit_controller(IDMController):
+    def __init__(self,
+                 veh_id,
+                 car_following_params=None,
+                 noise=0,headway_noise = 0):
+        IDMController.__init__(self,
+                 veh_id,
+                 v0=30,
+                 T=1,
+                 a=1,
+                 b=1.5,
+                 delta=4,
+                 s0=2,
+                 time_delay=0.0,
+                 noise=0,
+                 fail_safe='hit_test_action',
+                 display_warnings=True,
+                 car_following_params=car_following_params)
+
+        '''hit_procedure records hit process. key is the vehicle_id and the value is the speed difference
+        which is needed to simulate the process of hit 
+        '''
+        self.hit_procedure = {}
+        if hasattr(self,"headway_noise") == False:
+            self.headwat_noise = 0
+
+    def get_accel(self, env):
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
+        delta_h = np.random.normal(0,np.sqrt(self.headway_noise))
+        # in order to deal with ZeroDivisionError
+        if abs(h) < 1e-3:
+            h = 1e-3
+
+        if lead_id is None or lead_id == '':  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.k.vehicle.get_speed(lead_id)
+            s_star = self.s0 + max(
+                0, v * self.T + v * (v - lead_vel) /
+                (2 * np.sqrt(self.a * self.b)))
+        return self.a * (1 - (v / self.v0)**self.delta - (s_star / (h+delta_h))**2)
+
+
+    def hit_test_action(self,env,action):
+        import flow.controllers.hit_history
+        from flow.controllers.hit_history import current_hit, hit_histroies
+        sim_step = env.sim_step
+        time = env.k.simulation.time
+
+        # if self.veh_id in flow.controllers.hit_history.current_hit:
+        #     acc_value = hit_histroies[current_hit[self.veh_id]].delta_v/sim_step
+        #     del current_hit[self.veh_id]
+        #     return acc_value
+
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        # print(self.headway_noise)
+        h = env.k.vehicle.get_headway(self.veh_id)
+        lead_v = env.k.vehicle.get_speed(lead_id)
+
+        delta_v = lead_v - v
+        if delta_v * sim_step + h <= 0:
+            history = Hit_History(active_car=self.veh_id,
+                                  passive_car=lead_id,
+                                  active_car_speed=v,
+                                  passive_car_speed=lead_v,
+                                  step_time=time)
+
+            hit_histroies[flow.controllers.hit_history.hit_id] = copy.copy(history)
+            current_hit[lead_id] = flow.controllers.hit_history.hit_id
+            flow.controllers.hit_history.hit_id += 1
+            return delta_v / sim_step
+
+        if action < -self.max_deaccel:
+            return -self.max_deaccel
+        return action
+
+class Hit_controller2(IDMController):
+    def __init__(self,
+                 veh_id,
+                 car_following_params=None,
+                 noise=0,headway_noise = 0):
+        IDMController.__init__(self,
+                 veh_id,
+                 v0=30,
+                 T=1,
+                 a=0,
+                 b=1.5,
+                 delta=4,
+                 s0=2,
+                 time_delay=0.0,
+                 noise=0,
+                 fail_safe='hit_test_action',
+                 display_warnings=True,
+                 car_following_params=car_following_params)
+
+        '''hit_procedure records hit process. key is the vehicle_id and the value is the speed difference
+        which is needed to simulate the process of hit 
+        '''
+        self.hit_procedure = {}
+        if hasattr(object, "headway_noise") == False:
+            self.headway_noise = 0
+
+    def get_accel(self, env):
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
+
+        # in order to deal with ZeroDivisionError
+        if abs(h) < 1e-3:
+            h = 1e-3
+
+        if lead_id is None or lead_id == '':  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.k.vehicle.get_speed(lead_id)
+            s_star = self.s0 + max(
+                0, v * self.T + v * (v - lead_vel) /
+                (2 * np.sqrt(self.a * self.b)))
+
+
+        return self.a
+
+        # return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
+
+
+    def hit_test_action(self,env,action):
+        import flow.controllers.hit_history
+        from flow.controllers.hit_history import current_hit, hit_histroies
+        sim_step = env.sim_step
+        time = env.k.simulation.time
+
+        if self.veh_id in flow.controllers.hit_history.current_hit:
+            acc_value = hit_histroies[current_hit[self.veh_id]].delta_v/sim_step
+            del current_hit[self.veh_id]
+            return acc_value
+
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        # print(self.headway_noise)
+        h = env.k.vehicle.get_headway(self.veh_id)
+        delta_h = np.random.normal(0, np.sqrt(self.headway_noise))
+        lead_v = env.k.vehicle.get_speed(lead_id)
+
+        delta_v = lead_v - v
+
+        if delta_v * sim_step + h <= 0:
+            history = Hit_History(active_car=self.veh_id,
+                                  passive_car=lead_id,
+                                  active_car_speed=v,
+                                  passive_car_speed=lead_v,
+                                  step_time=time)
+
+            hit_histroies[flow.controllers.hit_history.hit_id] = copy.copy(history)
+            current_hit[lead_id] = flow.controllers.hit_history.hit_id
+            flow.controllers.hit_history.hit_id += 1
+
+
+        # if h+delta_h < delta_v * sim_step < 2*(h+delta_h):
+        #     return self.max_deaccel
+
+
