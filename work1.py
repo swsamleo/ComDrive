@@ -14,16 +14,18 @@ from flow.controllers.car_following_models import IDMController,Hit_controller
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.kernel.perception.Perception import Perception
 
+
+#perception_module
 perception_layer = Perception()
-perception_layer.add(sensor_direction="front",error_type=None,error_size=None)
-perception_layer.add(sensor_direction="front",error_type='Absolute',error_size=100)
+perception_layer.add(sensor_direction="front",error_type="Gaussian",error_size=5)
+perception_layer.add(sensor_direction="front",error_type='Absolute',error_size=2)
 
 s0=0
 sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive",decel=6,min_gap=0,max_speed=30,accel=2,
                                                   speed_dev=0)
 # unsafe_controller = Unsafe_Controller(car_following_params=sumo_car_following_para)
 vehicles.add("human",
-             acceleration_controller=(Hit_controller, {"s0":s0,"head_noise":0}),
+             acceleration_controller=(Hit_controller, {}),
              routing_controller=(ContinuousRouter, {}),
              num_vehicles=2,
              car_following_params=sumo_car_following_para1,

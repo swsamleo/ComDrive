@@ -19,3 +19,6 @@ class Absolute_error_obj(Error_obj):
         self.error_val = self.error_size
         return self.error_val
 
+error_types = {"Gaussian": Gaussian_error_obj,
+                "Absolute": Absolute_error_obj
+                    }

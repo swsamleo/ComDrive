@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL fi
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,6 +7,7 @@ database.py
 hit_record.db
 repete_work1.py
 work2.py
+work3.py
 # C extensions
 *.so
 
