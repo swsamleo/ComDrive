@@ -1,4 +1,5 @@
 
+
 import numpy as np
 import time
 from flow.networks.ring import RingNetwork
@@ -11,17 +12,22 @@ vehicles = VehicleParams()
 
 from flow.controllers.car_following_models import IDMController,Hit_controller
 from flow.controllers.routing_controllers import ContinuousRouter
+from flow.core.kernel.perception.Perception import Perception
 
+perception_layer = Perception()
+perception_layer.add(sensor_direction="front",error_type=None,error_size=None)
+perception_layer.add(sensor_direction="front",error_type='Absolute',error_size=100)
 
-Hit_controller.headway_noise = 1000
+s0=0
 sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive",decel=6,min_gap=0,max_speed=30,accel=2,
                                                   speed_dev=0)
 # unsafe_controller = Unsafe_Controller(car_following_params=sumo_car_following_para)
 vehicles.add("human",
-             acceleration_controller=(Hit_controller, {}),
+             acceleration_controller=(Hit_controller, {"s0":s0,"head_noise":0}),
              routing_controller=(ContinuousRouter, {}),
-             num_vehicles=10,
-             car_following_params=sumo_car_following_para1)
+             num_vehicles=2,
+             car_following_params=sumo_car_following_para1,
+             perception=perception_layer)
 
 # sumo_car_following_para2 = SumoCarFollowingParams(speed_mode="aggressive",decel=0.1,min_gap=0,max_speed=100)
 # vehicles.add("human2",
@@ -39,7 +45,7 @@ print(ADDITIONAL_NET_PARAMS)
 
 ADDITIONAL_NET_PARAMS = {
     # length of the ring road
-    "length": 230,
+    "length": 250,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
@@ -101,7 +107,7 @@ flow_params = dict(
 )
 
 # number of time steps
-flow_params['env'].horizon = 3000
+flow_params['env'].horizon = 1000
 exp = Experiment(flow_params)
 
 # run the sumo simulation
@@ -116,17 +122,25 @@ for value in hit_histroies.values():
     print("step_time",value.step_time)
 
 
-def record():
+def record(s0):
     import sqlite3
     conn = sqlite3.connect('hit_record.db')
     c = conn.cursor()
-    c.execute('''INSERT INTO  hit_record (head_way_noise,hit_time,cur_time)
-                values(%s,%s,%s)'''%(int(np.sqrt(Hit_controller.headway_noise)),
-                                     flow.controllers.hit_history.hit_id,
-                                     int(time.time())))
+    c.execute('''INSERT INTO  hit_record (head_way_noise,hit_num,cur_time,route_len,car_num,s0,avg_speed)
+                values(6,%s,%s,%s,%s,%s,%s)'''%(flow.controllers.hit_history.hit_id,
+                                             int(time.time()),
+                                            ADDITIONAL_NET_PARAMS["length"],
+                                            len(vehicles.ids),
+                                            s0,
+                                            np.mean(exp.env.k.vehicle.get_speed(vehicles.ids))))
+
+    # c.execute('''INSERT INTO  hit_record (head_way_noise,hit_time,cur_time)
+    #             values(%s,%s,%s)'''%(int(np.sqrt(Hit_controller.headway_noise)),
+    #                                  flow.controllers.hit_history.hit_id,
+    #                                  int(time.time())))
     conn.commit()
     conn.close()
-#record()
+record(s0)
 flow.controllers.hit_history.initialize()
 
 # for value in hit_histroies.values():

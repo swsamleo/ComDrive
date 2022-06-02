@@ -262,7 +262,8 @@ class VehicleParams:
             num_vehicles=0,
             car_following_params=None,
             lane_change_params=None,
-            color=None):
+            color=None,
+            perception=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -311,7 +312,8 @@ class VehicleParams:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
-             "lane_change_params": lane_change_params}
+             "lane_change_params": lane_change_params,
+             "perception":perception}
 
         if color:
             type_params['color'] = color
@@ -362,6 +364,7 @@ class VehicleParams:
         # add the type to the list of types
         self.num_types += 1
         self.types.append({"veh_id": veh_id, "type_params": type_params})
+        self.perception = perception
 
     def get_type(self, veh_id):
         """Return the type of a specified vehicle.

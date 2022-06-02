@@ -6,6 +6,7 @@ from flow.core.kernel.network import TraCIKernelNetwork, AimsunKernelNetwork
 from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight, \
     AimsunKernelTrafficLight
+# from flow.core.kernel.sensor import TraCISensor
 from flow.utils.exceptions import FatalFlowError
 
 

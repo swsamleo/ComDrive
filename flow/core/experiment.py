@@ -177,7 +177,6 @@ class Experiment:
         for key in info_dict.keys():
             print("Average, std {}: {}, {}".format(
                 key, np.mean(info_dict[key]), np.std(info_dict[key])))
-
         print("Total time:", time.time() - t)
         print("steps/second:", np.mean(times))
         self.env.terminate()

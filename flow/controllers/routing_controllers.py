@@ -62,7 +62,6 @@ class MinicityRouter(BaseRouter):
                                                 vehicles.get_lane(veh_id))
         not_an_edge = ":"
         no_next = 0
-
         if len(veh_next_edge) == no_next:
             next_route = None
         elif veh_route[-1] == veh_edge:
@@ -150,3 +149,13 @@ class I210Router(ContinuousRouter):
             new_route = super().choose_route(env)
 
         return new_route
+
+# class Continuous_HighwayRouter(BaseRouter):
+#     def choose_route(self, env):
+#         """See parent class."""
+#         vehicles = env.k.vehicle
+#         veh_id = self.veh_id
+#         veh_edge = vehicles.get_edge(veh_id)
+#         veh_route = vehicles.get_route(veh_id)
+#         return veh_route
+

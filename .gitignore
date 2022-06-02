@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 1.py
+database.py
+hit_record.db
+repete_work1.py
+work2.py
 # C extensions
 *.so
 

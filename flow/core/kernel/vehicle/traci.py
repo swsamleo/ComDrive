@@ -14,6 +14,8 @@ from bisect import bisect_left
 import itertools
 from copy import deepcopy
 
+
+
 # colors for vehicles
 WHITE = (255, 255, 255)
 CYAN = (0, 255, 255)
@@ -175,6 +177,7 @@ class TraCIVehicle(KernelVehicle):
                 vehicle_obs[veh_id] = obs
 
         if reset:
+            self.time_counter = 0
             self.time_counter = 0
 
             # reset all necessary values
