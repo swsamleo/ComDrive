@@ -17,19 +17,19 @@ for s in s_list:
 
             from flow.controllers.car_following_models import IDMController_with_noise,IDMController
             from flow.controllers.routing_controllers import ContinuousRouter
-            from flow.core.kernel.perception.Perception import Perception
+            from flow.core.kernel.perception.Perception_Obj import Perception
 
 
             #perception_module
             perception_layer = Perception()
-            perception_layer.add(sensor_direction="front",error_type="Gaussian",error_size=2.45)
+            perception_layer.add(sensor_direction="front",error_type=None,error_size=None)
             # perception_layer.add(sensor_direction="front",error_type='Absolute',error_size=2)
 
             s0=0
             sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive")
             # unsafe_controller = Unsafe_Controller(car_following_params=sumo_car_following_para)
             vehicles.add("human",
-                         acceleration_controller=(IDMController_with_noise, {"fail_safe":"instantaneous","s0":7,"T":0}),
+                         acceleration_controller=(IDMController_with_noise, {"fail_safe":"instantaneous","s0":0,"T":0}),
                          routing_controller=(ContinuousRouter, {}),
                          num_vehicles=20,
                          car_following_params=sumo_car_following_para1,
@@ -79,7 +79,7 @@ for s in s_list:
 
             from flow.core.params import SumoParams
 
-            sim_params = SumoParams(sim_step=0.1, render=False, emission_path='data')
+            sim_params = SumoParams(sim_step=0.1, render=True, emission_path='data')
 
             from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 
@@ -141,5 +141,5 @@ for s in s_list:
 
                 conn.commit()
                 conn.close()
-            record(s0,T)
+            # record(s0,T)
             flow.controllers.hit_history.initialize()

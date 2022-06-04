@@ -722,8 +722,9 @@ class Hit_controller(IDMController):
         v = env.k.vehicle.get_speed(self.veh_id)
         veh_type = env.k.vehicle.get_type(self.veh_id)
         lead_id = env.k.vehicle.get_leader(self.veh_id)
-        perception = env.k.vehicle.type_parameters[veh_type]["perception"]
-        h = perception.get_data(env,self.veh_id,"front")
+        perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
+        distance_perception_obj = perception_layer.get_distance_perception_obj()
+        h = distance_perception_obj.get_data(env, self.veh_id)
         # in order to deal with ZeroDivisionError
         if abs(h) < 1e-3:
             h = 1e-3
@@ -751,6 +752,7 @@ class Hit_controller(IDMController):
 
         v = env.k.vehicle.get_speed(self.veh_id)
         lead_id = env.k.vehicle.get_leader(self.veh_id)
+
         # print(self.headway_noise)
         h = env.k.vehicle.get_headway(self.veh_id)
         lead_v = env.k.vehicle.get_speed(lead_id)
@@ -844,9 +846,12 @@ class IDMController_with_noise(BaseController):
         v = env.k.vehicle.get_speed(self.veh_id)
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         veh_type = env.k.vehicle.get_type(self.veh_id)
-        perception = env.k.vehicle.type_parameters[veh_type]["perception"]
-        h = perception.get_data(env,self.veh_id,"front")
+        perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
+        distance_perception_obj = perception_layer.get_distance_perception_obj()
+        h = distance_perception_obj.get_data(env,self.veh_id)
+        # print(h)
         # h = env.k.vehicle.get_headway(self.veh_id)
+        # print(h)
 
         # in order to deal with ZeroDivisionError
         if abs(h) < 1e-3:

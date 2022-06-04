@@ -10,22 +10,27 @@ SumoCarFollowingParams
 
 vehicles = VehicleParams()
 
-from flow.controllers.car_following_models import IDMController,Hit_controller
+from flow.controllers.car_following_models import IDMController,Hit_controller,IDMController_with_noise
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.kernel.perception.Perception import Perception
-
+from flow.core.kernel.perception.Perception_Obj import Perception_Obj
+from flow.core.kernel.perception.Perception_Layer import Perception_Layer
+from flow.core.kernel.perception.Fuse_Data_Obj import Avg_Fuse_Data_Obj
+from flow.core.kernel.perception.Distance_Sensor_Obj import GPS_Distance_Sensor,Camera_Distance_Sensor,\
+    Radar_Distance_Sensor,Base_Distance_Sensor_Obj
 
 #perception_module
-perception_layer = Perception()
-perception_layer.add(sensor_direction="front",error_type="Gaussian",error_size=5)
-perception_layer.add(sensor_direction="front",error_type='Absolute',error_size=2)
+perception_layer = Perception_Layer()
+distance_perception_obj = Perception_Obj(Avg_Fuse_Data_Obj)
+distance_perception_obj.add_new_sensor(GPS_Distance_Sensor)
+distance_perception_obj.add_new_sensor(Camera_Distance_Sensor)
+perception_layer.set_distance_perception_obj(distance_perception_obj)
 
-s0=0
+
 sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive",decel=6,min_gap=0,max_speed=30,accel=2,
                                                   speed_dev=0)
 # unsafe_controller = Unsafe_Controller(car_following_params=sumo_car_following_para)
 vehicles.add("human",
-             acceleration_controller=(Hit_controller, {}),
+             acceleration_controller=(IDMController_with_noise, {}),
              routing_controller=(ContinuousRouter, {}),
              num_vehicles=2,
              car_following_params=sumo_car_following_para1,
@@ -140,10 +145,10 @@ def record(s0):
     #             values(%s,%s,%s)'''%(int(np.sqrt(Hit_controller.headway_noise)),
     #                                  flow.controllers.hit_history.hit_id,
     #                                  int(time.time())))
-    conn.commit()
-    conn.close()
-record(s0)
-flow.controllers.hit_history.initialize()
+#     conn.commit()
+#     conn.close()
+# record(s0)
+# flow.controllers.hit_history.initialize()
 
 # for value in hit_histroies.values():
 #     print("passive_car:",value.passive_car)
