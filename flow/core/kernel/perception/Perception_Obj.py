@@ -1,11 +1,14 @@
 
 import copy
 import numpy as np
-from flow.core.kernel.perception.Fuse_Data_Obj import Avg_Fuse_Data_Obj
 
 
 '''
 Perception hold different sensors into it. 
+fuse_obj is used to process data from different sensors, such as using Arithmetic mean or Quadratic mean
+add_new_sensor can add sensors into the perception_obj
+get_data is the interface 
+detect_data is used to get data from env
 '''
 class Perception_Obj():
     def __init__(self,fuse_data_obj):

@@ -1,3 +1,9 @@
+'''
+Perception_Layer contains several obj. Each obj has sensors inside.
+For example distance_perception_obj has sensors detecting sensors.
+'''
+
+
 class Perception_Layer:
     def __init__(self):
         self.__distance_perception_obj = None
