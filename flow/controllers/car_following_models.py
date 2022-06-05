@@ -774,6 +774,10 @@ class Hit_controller(IDMController):
             return -self.max_deaccel
         return action
 
+
+
+
+
 class IDMController_with_noise(BaseController):
     """Intelligent Driver Model (IDM) controller.
 
@@ -841,14 +845,12 @@ class IDMController_with_noise(BaseController):
         self.delta = delta
         self.s0 = s0
 
-    def get_accel(self, env):
+    def get_accel(self, env, h, lead_id,v, lead_vel):
         """See parent class."""
-        v = env.k.vehicle.get_speed(self.veh_id)
-        lead_id = env.k.vehicle.get_leader(self.veh_id)
-        veh_type = env.k.vehicle.get_type(self.veh_id)
-        perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
-        distance_perception_obj = perception_layer.get_distance_perception_obj()
-        h = distance_perception_obj.get_data(env,self.veh_id)
+        # veh_type = env.k.vehicle.get_type(self.veh_id)
+        # perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
+        # distance_perception_obj = perception_layer.get_distance_perception_obj()
+        # h = distance_perception_obj.get_data(env,self.veh_id)
         # print(h)
         # h = env.k.vehicle.get_headway(self.veh_id)
         # print(h)
@@ -907,3 +909,77 @@ class IDMController_with_noise(BaseController):
                 return action
         else:
             return action
+
+    def get_action(self, env):
+        """Convert the get_accel() acceleration into an action.
+
+        If no acceleration is specified, the action returns a None as well,
+        signifying that sumo should control the accelerations for the current
+        time step.
+
+        This method also augments the controller with the desired level of
+        stochastic noise, and utlizes the "instantaneous", "safe_velocity",
+        "feasible_accel", and/or "obey_speed_limit" failsafes if requested.
+
+        Parameters
+        ----------
+        env : flow.envs.Env
+            state of the environment at the current time step
+
+        Returns
+        -------
+        float
+            the modified form of the acceleration
+        """
+        # clear the current stored accels of this vehicle to None
+        env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=False)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=False, failsafe=True)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=True, failsafe=False)
+        env.k.vehicle.update_accel(self.veh_id, None, noise=True, failsafe=True)
+
+        # this is to avoid abrupt decelerations when a vehicle has just entered
+        # a network and it's data is still not subscribed
+        if len(env.k.vehicle.get_edge(self.veh_id)) == 0:
+            return None
+
+        # this allows the acceleration behavior of vehicles in a junction be
+        # described by sumo instead of an explicit model
+        if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
+            return None
+        veh_type = env.k.vehicle.get_type(self.veh_id)
+        perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
+        distance_perception_obj = perception_layer.get_distance_perception_obj()
+        velocity_perception_obj = perception_layer.get_velocity_perception_obj()
+        h = distance_perception_obj.get_data(self.veh_id)
+        v = velocity_perception_obj.get_data(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = velocity_perception_obj.get_data(lead_id)
+
+        accel = self.get_accel(env, h, lead_id, v, lead_vel)
+
+        # if no acceleration is specified, let sumo take over for the current
+        # time step
+        if accel is None:
+            return None
+
+        # store the acceleration without noise to each vehicle
+        # run fail safe if requested
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=False, failsafe=False)
+        accel_no_noise_with_failsafe = accel
+
+        # for failsafe in self.failsafes:
+        #     accel_no_noise_with_failsafe = failsafe(env, accel_no_noise_with_failsafe)
+        #
+        # env.k.vehicle.update_accel(self.veh_id, accel_no_noise_with_failsafe, noise=False, failsafe=True)
+
+        # add noise to the accelerations, if requested
+        if self.accel_noise > 0:
+            accel += np.sqrt(env.sim_step) * np.random.normal(0, self.accel_noise)
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=False)
+
+        # run the fail-safes, if requested
+        for failsafe in self.failsafes:
+            accel = failsafe(env, accel)
+
+        env.k.vehicle.update_accel(self.veh_id, accel, noise=True, failsafe=True)
+        return accel
