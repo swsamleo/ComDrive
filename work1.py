@@ -14,15 +14,12 @@ from flow.controllers.car_following_models import IDMController,Hit_controller,I
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.kernel.perception.Perception_Obj import Perception_Obj
 from flow.core.kernel.perception.Perception_Layer import Perception_Layer
-from flow.core.kernel.perception.Fuse_Data_Obj import Avg_Fuse_Data_Obj
-from flow.core.kernel.perception.Distance_Sensor_Obj import GPS_Distance_Sensor,Camera_Distance_Sensor,\
-    Radar_Distance_Sensor,Base_Distance_Sensor_Obj
 
 #perception_module
 perception_layer = Perception_Layer()
-distance_perception_obj = Perception_Obj(Avg_Fuse_Data_Obj)
-distance_perception_obj.add_new_sensor(GPS_Distance_Sensor)
-distance_perception_obj.add_new_sensor(Camera_Distance_Sensor)
+distance_perception_obj = Perception_Obj()
+distance_perception_obj.add_new_sensor(sensor_name="GPS")
+# distance_perception_obj.add_new_sensor(sensor_name="GPS")
 perception_layer.set_distance_perception_obj(distance_perception_obj)
 
 
@@ -35,6 +32,13 @@ vehicles.add("human",
              num_vehicles=2,
              car_following_params=sumo_car_following_para1,
              perception=perception_layer)
+
+# vehicles.add("human2",
+#              acceleration_controller=(IDMController_with_noise, {}),
+#              routing_controller=(ContinuousRouter, {}),
+#              num_vehicles=2,
+#              car_following_params=sumo_car_following_para1,
+#              perception=perception_layer)
 
 # sumo_car_following_para2 = SumoCarFollowingParams(speed_mode="aggressive",decel=0.1,min_gap=0,max_speed=100)
 # vehicles.add("human2",

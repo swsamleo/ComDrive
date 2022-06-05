@@ -325,7 +325,16 @@ class Env(gym.Env, metaclass=ABCMeta):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-
+            if len(self.k.vehicle.get_controlled_ids()) > 0:
+                for veh_id in self.k.vehicle.get_controlled_ids():
+                    veh_type = self.k.vehicle.get_type(veh_id)
+                    perception_layer = self.k.vehicle.type_parameters[veh_type]["perception"]
+                    distance_perception_obj = perception_layer.get_distance_perception_obj()
+                    distance_perception_obj.update_data(self,veh_id)
+                    # print(distance_perception_obj.get_data(veh_id))
+                # print(self.k.vehicle.get_controlled_ids())
+            #veh_type = env.k.vehicle.get_type(self.veh_id)
+            # perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_ids()) > 0:
                 accel = []
