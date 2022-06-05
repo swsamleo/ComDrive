@@ -330,7 +330,10 @@ class Env(gym.Env, metaclass=ABCMeta):
                     veh_type = self.k.vehicle.get_type(veh_id)
                     perception_layer = self.k.vehicle.type_parameters[veh_type]["perception"]
                     distance_perception_obj = perception_layer.get_distance_perception_obj()
-                    distance_perception_obj.update_data(self,veh_id)
+                    distance_perception_obj.update_data(self, veh_id)
+                    velocity_perception_obj = perception_layer.get_velocity_perception_obj()
+                    velocity_perception_obj.update_data(self, veh_id)
+                    # print(velocity_perception_obj.get_data(veh_id))
                     # print(distance_perception_obj.get_data(veh_id))
                 # print(self.k.vehicle.get_controlled_ids())
             #veh_type = env.k.vehicle.get_type(self.veh_id)

@@ -845,11 +845,9 @@ class IDMController_with_noise(BaseController):
         self.delta = delta
         self.s0 = s0
 
-    def get_accel(self, env,h):
+    def get_accel(self, env, h, lead_id,v, lead_vel):
         """See parent class."""
-        v = env.k.vehicle.get_speed(self.veh_id)
-        lead_id = env.k.vehicle.get_leader(self.veh_id)
-        veh_type = env.k.vehicle.get_type(self.veh_id)
+        # veh_type = env.k.vehicle.get_type(self.veh_id)
         # perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
         # distance_perception_obj = perception_layer.get_distance_perception_obj()
         # h = distance_perception_obj.get_data(env,self.veh_id)
@@ -951,8 +949,13 @@ class IDMController_with_noise(BaseController):
         veh_type = env.k.vehicle.get_type(self.veh_id)
         perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
         distance_perception_obj = perception_layer.get_distance_perception_obj()
+        velocity_perception_obj = perception_layer.get_velocity_perception_obj()
         h = distance_perception_obj.get_data(self.veh_id)
-        accel = self.get_accel(env,h)
+        v = velocity_perception_obj.get_data(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = velocity_perception_obj.get_data(lead_id)
+
+        accel = self.get_accel(env, h, lead_id, v, lead_vel)
 
         # if no acceleration is specified, let sumo take over for the current
         # time step

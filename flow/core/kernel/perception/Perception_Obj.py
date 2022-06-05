@@ -53,7 +53,11 @@ class Perception_Obj():
 
     def __fuse_data(self, data_list, vehicle_id):
         fused_data = self.__fuse_function(data_list)
-        self.__data[vehicle_id] = fused_data
+        if fused_data >= 0:
+            self.__data[vehicle_id] = fused_data
+        else:
+            self.__data[vehicle_id] = 0
+
 
 
 

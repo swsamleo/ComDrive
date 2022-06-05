@@ -17,11 +17,13 @@ from flow.core.kernel.perception.Perception_Layer import Perception_Layer
 
 #perception_module
 perception_layer = Perception_Layer()
-distance_perception_obj = Perception_Obj()
+distance_perception_obj = Perception_Obj(perception_type="distance")
 distance_perception_obj.add_new_sensor(sensor_name="GPS")
-# distance_perception_obj.add_new_sensor(sensor_name="GPS")
+distance_perception_obj.add_new_sensor(sensor_name="GPS")
 perception_layer.set_distance_perception_obj(distance_perception_obj)
-
+velocity_perception_obj = Perception_Obj(perception_type="velocity")
+velocity_perception_obj.add_new_sensor(sensor_name="GPS")
+perception_layer.set_velocity_perception_obj(velocity_perception_obj)
 
 sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive",decel=6,min_gap=0,max_speed=30,accel=2,
                                                   speed_dev=0)
@@ -29,7 +31,7 @@ sumo_car_following_para1 = SumoCarFollowingParams(speed_mode="aggressive",decel=
 vehicles.add("human",
              acceleration_controller=(IDMController_with_noise, {}),
              routing_controller=(ContinuousRouter, {}),
-             num_vehicles=2,
+             num_vehicles=10,
              car_following_params=sumo_car_following_para1,
              perception=perception_layer)
 
