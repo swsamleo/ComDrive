@@ -68,6 +68,8 @@ class Kernel(object):
             self.network = TraCIKernelNetwork(self, sim_params)
             self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
+
+
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
             self.network = AimsunKernelNetwork(self, sim_params)

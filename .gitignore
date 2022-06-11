@@ -8,7 +8,9 @@ repete_work1.py
 work3.py
 # C extensions
 *.so
-
+database.py
+tutorial3.py
+flow.networks.high_way_ramps.py
 # Distribution / packaging
 .Python
 env/
@@ -26,7 +28,18 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-
+barchart.py
+all_data.pkl
+cross_road_test.py
+high_way_test.py
+highway_ramps_test.py
+perception_example.py
+safety_example.py
+hit_record_changing_noise.db
+database.py
+velocity_line.py
+white_data_*
+red_data_*
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -113,4 +126,5 @@ flow.ang
 *.sqlite
 *.ang.old
 *.sang
-
+database.py
+perception_system_test.py

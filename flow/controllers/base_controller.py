@@ -135,7 +135,6 @@ class BaseController(metaclass=ABCMeta):
             return None
 
         accel = self.get_accel(env)
-
         # if no acceleration is specified, let sumo take over for the current
         # time step
         if accel is None:

@@ -105,7 +105,9 @@ class Env(gym.Env, metaclass=ABCMeta):
                  sim_params,
                  network=None,
                  simulator='traci',
-                 scenario=None):
+                 scenario=None,
+                 perception_system=None,
+                 safety_system=None):
         """Initialize the environment class.
 
         Parameters
@@ -227,6 +229,9 @@ class Env(gym.Env, metaclass=ABCMeta):
         else:
             raise FatalFlowError(
                 'Mode %s is not supported!' % self.sim_params.render)
+
+        self.perception_system = perception_system
+        self.safety_system = safety_system
         atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
@@ -325,19 +330,32 @@ class Env(gym.Env, metaclass=ABCMeta):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-            if len(self.k.vehicle.get_controlled_ids()) > 0:
-                for veh_id in self.k.vehicle.get_controlled_ids():
+            if len(self.k.vehicle.get_ids()) > 0:
+                for veh_id in self.k.vehicle.get_ids():
                     veh_type = self.k.vehicle.get_type(veh_id)
-                    perception_layer = self.k.vehicle.type_parameters[veh_type]["perception"]
-                    distance_perception_obj = perception_layer.get_distance_perception_obj()
-                    distance_perception_obj.update_data(self, veh_id)
-                    velocity_perception_obj = perception_layer.get_velocity_perception_obj()
-                    velocity_perception_obj.update_data(self, veh_id)
-                    # print(velocity_perception_obj.get_data(veh_id))
-                    # print(distance_perception_obj.get_data(veh_id))
-                # print(self.k.vehicle.get_controlled_ids())
-            #veh_type = env.k.vehicle.get_type(self.veh_id)
-            # perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
+                    sensor_system = self.k.vehicle.type_parameters[veh_type]['sensor_system']
+                    distance = sensor_system.get_data("distance", self, veh_id)
+                    velocity = sensor_system.get_data("velocity", self, veh_id)
+                    self.perception_system.update_data("distance", veh_id, distance)
+                    self.perception_system.update_data("velocity", veh_id, velocity)
+
+                    # self.perception_system
+                for veh_id in self.k.vehicle.get_ids():
+                    self_velocity = self.perception_system.get_data("velocity", veh_id)
+                    lead_veh_id = self.k.vehicle.get_leader(veh_id)
+                    if lead_veh_id:
+                        lead_velocity = self.perception_system.get_data("velocity", lead_veh_id)
+                        headway = self.perception_system.get_data("distance", veh_id)
+                        self.safety_system.calculate_safety_metrics(veh_id=veh_id,
+                                                                    headway=headway,
+                                                                    self_velocity=self_velocity,
+                                                                    lead_velocity=lead_velocity)
+                    else:
+                        self.safety_system.calculate_safety_metrics(veh_id=veh_id,
+                                                                    headway=1e5,
+                                                                    self_velocity=self_velocity,
+                                                                    lead_velocity=lead_velocity)
+
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_ids()) > 0:
                 accel = []

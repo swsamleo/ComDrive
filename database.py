@@ -2,9 +2,9 @@
 
 
 import sqlite3
-conn = sqlite3.connect('hit_record.db')
+conn = sqlite3.connect('hit_record_changing_noise.db')
 c = conn.cursor()
-c.execute('''CREATE TABLE  hit_record (head_way_noise,hit_num,cur_time,avg_speed,s0,T)''')
+c.execute('''CREATE TABLE  hit_record (head_way_noise,hit_num,cur_time,avg_speed)''')
 conn.commit()
 conn.close()
 

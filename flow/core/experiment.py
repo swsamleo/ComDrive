@@ -165,6 +165,7 @@ class Experiment:
             info_dict["outflows"].append(outflow)
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
+            error_size = 10
 
             print("Round {0}, return: {1}".format(i, ret))
 

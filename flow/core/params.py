@@ -263,7 +263,9 @@ class VehicleParams:
             car_following_params=None,
             lane_change_params=None,
             color=None,
-            perception=None):
+            perception=None,
+            safety_measurement_obj = None,
+            sensor_system=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -313,7 +315,9 @@ class VehicleParams:
              "initial_speed": initial_speed,
              "car_following_params": car_following_params,
              "lane_change_params": lane_change_params,
-             "perception":perception}
+             "perception": perception,
+             "safety_measurement_obj": safety_measurement_obj,
+             "sensor_system": sensor_system}
 
         if color:
             type_params['color'] = color

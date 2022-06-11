@@ -845,17 +845,13 @@ class IDMController_with_noise(BaseController):
         self.delta = delta
         self.s0 = s0
 
-    def get_accel(self, env, h, lead_id,v, lead_vel):
+    def get_accel(self, env):
         """See parent class."""
-        # veh_type = env.k.vehicle.get_type(self.veh_id)
-        # perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
-        # distance_perception_obj = perception_layer.get_distance_perception_obj()
-        # h = distance_perception_obj.get_data(env,self.veh_id)
-        # print(h)
-        # h = env.k.vehicle.get_headway(self.veh_id)
-        # print(h)
-
         # in order to deal with ZeroDivisionError
+        h = env.perception_system.get_data("distance", self.veh_id)
+        v = env.perception_system.get_data("velocity", self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = env.perception_system.get_data("velocity", lead_id)
         if abs(h) < 1e-3:
             h = 1e-3
 
@@ -946,16 +942,8 @@ class IDMController_with_noise(BaseController):
         # described by sumo instead of an explicit model
         if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
             return None
-        veh_type = env.k.vehicle.get_type(self.veh_id)
-        perception_layer = env.k.vehicle.type_parameters[veh_type]["perception"]
-        distance_perception_obj = perception_layer.get_distance_perception_obj()
-        velocity_perception_obj = perception_layer.get_velocity_perception_obj()
-        h = distance_perception_obj.get_data(self.veh_id)
-        v = velocity_perception_obj.get_data(self.veh_id)
-        lead_id = env.k.vehicle.get_leader(self.veh_id)
-        lead_vel = velocity_perception_obj.get_data(lead_id)
 
-        accel = self.get_accel(env, h, lead_id, v, lead_vel)
+        accel = self.get_accel(env)
 
         # if no acceleration is specified, let sumo take over for the current
         # time step
