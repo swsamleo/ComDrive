@@ -11,10 +11,15 @@ class Sensor_System():
                             "velocity": None,
                             "angle": None
                             }
-        self.__data = {"distance": {},
-                       "velocity": {},
-                       "angle": {}
-                       }
+        self.__data_with_noise = {"distance": {},
+                                  "velocity": {},
+                                  "angle": {}
+                                  }
+
+        self.__data_without_noise = {"distance": {},
+                                    "velocity": {},
+                                    "angle": {}
+                                    }
         self.__activated_sensors = {"distance": "all",
                                     "velocity": "all",
                                     "angle": "all"
@@ -58,18 +63,21 @@ class Sensor_System():
     def set_activated_sensor(self,sensor_type,activated_sensor_namelist):
         self.__activated_sensors[sensor_type] = activated_sensor_namelist
 
-
-    def get_data(self,sensor_type,env,veh_id):
+    def get_data_with_noise(self,sensor_type,env,veh_id):
         temp_data_list = self.__detect_data(sensor_type,env,veh_id)
         self.__fuse_data(temp_data_list[:], sensor_type, veh_id)
-        return self.__data[sensor_type][veh_id]
+        return self.__data_with_noise[sensor_type][veh_id]
+
+    def get_data_without_noise(self,sensor_type,env,veh_id):
+        self.__detect_data(sensor_type, env, veh_id)
+        return self.__data_without_noise[sensor_type][veh_id]
 
     def __detect_data(self,sensor_type, env, veh_id):
         temp_data_list = []
         for sensor in self.__sensors[sensor_type]:
             if self.__activated_sensors[sensor_type] == "all" or sensor["sensor_name"] in self.__activated_sensors[sensor_type]:
                 raw_data = Detect_Type[sensor_type](env, veh_id)
-                print(raw_data)
+                self.__data_without_noise[sensor_type][veh_id] = raw_data
                 if sensor["error_type"] != None:
                     raw_data = raw_data + Error[sensor["error_type"]](sensor["error_size"])
                 temp_data_list.append(raw_data)
@@ -78,8 +86,8 @@ class Sensor_System():
     def __fuse_data(self, data_list, sensor_type, veh_id):
         fused_data = Fuse_Function[self.__fuse_func[sensor_type]](data_list)
         if fused_data >= 0:
-            self.__data[sensor_type][veh_id] = fused_data
+            self.__data_with_noise[sensor_type][veh_id] = fused_data
         else:
-            self.__data[sensor_type][veh_id] = 0
+            self.__data_with_noise[sensor_type][veh_id] = 0
 
 

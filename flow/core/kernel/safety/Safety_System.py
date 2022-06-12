@@ -1,4 +1,4 @@
-from flow.core.kernel.safety.Safety_Measurement_Params import metric_types
+from flow.core.kernel.safety.Safety_System_Params import metric_types
 
 
 class Safety_System():
@@ -15,7 +15,6 @@ class Safety_System():
 
     def get_safety_data(self, metric, veh_id):
         return self.__safety_data[metric][veh_id]
-
 
     def set_safety_metric_types(self, safety_metric_types):
         self.__safety_metric_types = safety_metric_types

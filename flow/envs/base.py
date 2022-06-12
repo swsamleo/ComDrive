@@ -334,18 +334,22 @@ class Env(gym.Env, metaclass=ABCMeta):
                 for veh_id in self.k.vehicle.get_ids():
                     veh_type = self.k.vehicle.get_type(veh_id)
                     sensor_system = self.k.vehicle.type_parameters[veh_type]['sensor_system']
-                    distance = sensor_system.get_data("distance", self, veh_id)
-                    velocity = sensor_system.get_data("velocity", self, veh_id)
-                    self.perception_system.update_data("distance", veh_id, distance)
-                    self.perception_system.update_data("velocity", veh_id, velocity)
+                    distance = sensor_system.get_data_with_noise("distance", self, veh_id)
+                    velocity = sensor_system.get_data_with_noise("velocity", self, veh_id)
+                    self.perception_system.update_data_with_noise("distance", veh_id, distance)
+                    self.perception_system.update_data_with_noise("velocity", veh_id, velocity)
+                    distance = sensor_system.get_data_without_noise("distance", self, veh_id)
+                    velocity = sensor_system.get_data_without_noise("velocity", self, veh_id)
+                    self.perception_system.update_data_without_noise("distance", veh_id, distance)
+                    self.perception_system.update_data_without_noise("velocity", veh_id, velocity)
 
                     # self.perception_system
                 for veh_id in self.k.vehicle.get_ids():
-                    self_velocity = self.perception_system.get_data("velocity", veh_id)
+                    self_velocity = self.perception_system.get_data_with_noise("velocity", veh_id)
                     lead_veh_id = self.k.vehicle.get_leader(veh_id)
                     if lead_veh_id:
-                        lead_velocity = self.perception_system.get_data("velocity", lead_veh_id)
-                        headway = self.perception_system.get_data("distance", veh_id)
+                        lead_velocity = self.perception_system.get_data_without_noise("velocity", lead_veh_id)
+                        headway = self.perception_system.get_data_without_noise("distance", veh_id)
                         self.safety_system.calculate_safety_metrics(veh_id=veh_id,
                                                                     headway=headway,
                                                                     self_velocity=self_velocity,
