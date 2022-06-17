@@ -128,3 +128,8 @@ flow.ang
 *.sang
 database.py
 perception_system_test.py
+plot_reward.py
+reward_history.py
+margin_net*
+train_margin_withbackway.py
+reward*

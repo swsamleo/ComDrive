@@ -1,5 +1,6 @@
 from flow.core.kernel.safety.Safety_System_Params import metric_types
-
+import math
+import time
 
 class Safety_System():
     def __init__(self, safety_metric_types=["TTC"]):
@@ -13,8 +14,23 @@ class Safety_System():
             result = metric_types[metric](**kwargs)
             self.__safety_data[metric][veh_id] = result
 
+
     def get_safety_data(self, metric, veh_id):
         return self.__safety_data[metric][veh_id]
 
     def set_safety_metric_types(self, safety_metric_types):
         self.__safety_metric_types = safety_metric_types
+
+    def get_fairness_metric(self, lambda_para, beta, safety_metric_type="TTC"):
+        sum_safety_metrics = 0
+        for key in self.__safety_data[safety_metric_type]:
+            sum_safety_metrics += self.__safety_data[safety_metric_type][key]
+        temp = 0
+        for key in self.__safety_data[safety_metric_type]:
+            temp += (self.__safety_data[safety_metric_type][key]/sum_safety_metrics)**(1-beta)
+        f_b = temp**(1/beta)
+        fairness = lambda_para*math.log(f_b, 10) + math.log(sum_safety_metrics, 10)
+        return fairness
+
+
+

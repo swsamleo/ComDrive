@@ -165,11 +165,16 @@ class Experiment:
             info_dict["outflows"].append(outflow)
             for key in custom_vals.keys():
                 info_dict[key].append(np.mean(custom_vals[key]))
-            error_size = 10
 
             print("Round {0}, return: {1}".format(i, ret))
 
-
+            import sqlite3
+            conn = sqlite3.connect('reward_ring_network_with_backway.db')
+            c = conn.cursor()
+            c.execute('''Insert into reward_ring_network_with_backway 
+                        values(%s,%s)''' % (ret, time.time()))
+            conn.commit()
+            conn.close()
 
             # Save emission data at the end of every rollout. This is skipped
             # by the internal method if no emission path was specified.
@@ -180,10 +185,9 @@ class Experiment:
         for key in info_dict.keys():
             print("Average, std {}: {}, {}".format(
                 key, np.mean(info_dict[key]), np.std(info_dict[key])))
+
         print("Total time:", time.time() - t)
         print("steps/second:", np.mean(times))
-        for ret in info_dict["returns"]:
-            print(ret)
         self.env.terminate()
 
         return info_dict

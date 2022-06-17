@@ -1,13 +1,29 @@
 
 
 
+# import sqlite3
+# conn = sqlite3.connect('hit_record_changing_noise.db')
+# c = conn.cursor()
+# c.execute('''CREATE TABLE  hit_record (head_way_noise,hit_num,cur_time,avg_speed)''')
+# conn.commit()
+# conn.close()
+
+
+# import sqlite3
+# conn = sqlite3.connect('reward_ring_network.db')
+# c = conn.cursor()
+# c.execute('''CREATE TABLE  reward_ring_network (reward,cur_time)''')
+# conn.commit()
+# conn.close()
+
+
+
 import sqlite3
-conn = sqlite3.connect('hit_record_changing_noise.db')
+conn = sqlite3.connect('reward_ring_network_with_backway.db')
 c = conn.cursor()
-c.execute('''CREATE TABLE  hit_record (head_way_noise,hit_num,cur_time,avg_speed)''')
+c.execute('''CREATE TABLE  reward_ring_network_with_backway (reward,cur_time)''')
 conn.commit()
 conn.close()
-
 # import sqlite3
 # conn = sqlite3.connect('hit_record.db')
 # c = conn.cursor()

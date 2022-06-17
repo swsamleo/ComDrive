@@ -345,7 +345,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
                     # self.perception_system
                 for veh_id in self.k.vehicle.get_ids():
-                    self_velocity = self.perception_system.get_data_with_noise("velocity", veh_id)
+                    self_velocity = self.perception_system.get_data_without_noise("velocity", veh_id)
                     lead_veh_id = self.k.vehicle.get_leader(veh_id)
                     if lead_veh_id:
                         lead_velocity = self.perception_system.get_data_without_noise("velocity", lead_veh_id)
@@ -359,6 +359,8 @@ class Env(gym.Env, metaclass=ABCMeta):
                                                                     headway=1e5,
                                                                     self_velocity=self_velocity,
                                                                     lead_velocity=lead_velocity)
+                # print(self.safety_system.get_fairness_metric(0.09,0.1))
+                # print(self.perception_system.get_traffic_throughput(self.k.vehicle.get_ids()))
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_ids()) > 0:
