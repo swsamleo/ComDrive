@@ -358,7 +358,7 @@ class Env(gym.Env, metaclass=ABCMeta):
                         self.safety_system.calculate_safety_metrics(veh_id=veh_id,
                                                                     headway=1e5,
                                                                     self_velocity=self_velocity,
-                                                                    lead_velocity=lead_velocity)
+                                                                    lead_velocity=1e3)
                 # print(self.safety_system.get_fairness_metric(0.09,0.1))
                 # print(self.perception_system.get_traffic_throughput(self.k.vehicle.get_ids()))
 

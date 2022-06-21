@@ -229,8 +229,8 @@ class TraCISimulation(KernelSimulation):
                 sumo_call.append("none")
                 # sumo_call.append("--collision-output")
                 # sumo_call.append("collision")
-                sumo_call.append("--default.emergencydecel")
-                sumo_call.append("1000")
+                # sumo_call.append("--default.emergencydecel")
+                # sumo_call.append("1000")
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(network.cfg))

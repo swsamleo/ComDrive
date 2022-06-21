@@ -196,7 +196,7 @@ class Experiment:
 
             import flow.controllers.hit_history
             import sqlite3
-            conn = sqlite3.connect('reward_ring_network_with_backway.db')
+            conn = sqlite3.connect('reward_ring_network_with_backway_d1.db')
             c = conn.cursor()
             c.execute('''Insert into reward_ring_network_with_backway 
                         values(%s,%s,%s)''' % (ret, flow.controllers.hit_history.hit_id, time.time()))

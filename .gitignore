@@ -133,3 +133,5 @@ reward_history.py
 margin_net*
 train_margin_withbackway.py
 reward*
+plot*
+train*

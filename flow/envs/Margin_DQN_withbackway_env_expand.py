@@ -21,15 +21,16 @@ import traceback
 
 preference = [0.5, 0.5]
 
-margin_list = np.linspace(-5, 5, 101)
+margin_list = np.linspace(-10, 10, 201)
 lead_velocity_threshold = 50
 backway_threshold=1000
 k = 1e-3
+safety_distance = 2
 
 # parameters
 Batch_size = 32
 Lr = 0.01
-Epsilon = 0.95  # greedy policy
+Epsilon = 0.9  # greedy policy
 Gamma = 0.9  # reward discount
 Target_replace_iter = 100  # target update frequency
 Memory_capacity = 5000
@@ -55,11 +56,11 @@ ADDITIONAL_ENV_PARAMS = {
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(N_states, 256)
+        self.fc1 = nn.Linear(N_states, 512)
         self.fc1.weight.data.normal_(0, 0.1)
-        self.fc2 = nn.Linear(256, 128)
+        self.fc2 = nn.Linear(512, 256)
         self.fc2.weight.data.normal_(0, 0.1)
-        self.out = nn.Linear(128, N_actions)
+        self.out = nn.Linear(256, N_actions)
         self.out.weight.data.normal_(0, 0.1)
 
     def forward(self, x):
@@ -85,7 +86,7 @@ class DQN(object):
             self.eval_net.load_state_dict(torch.load(load_path))
             print("network weights loaded successfully")
         else:
-            self.load_path = "margin_net_with_backway_d1.pth"
+            self.load_path = "margin_net_with_backway.pth"
 
     def choose_action(self, x):
         x = Variable(torch.unsqueeze(torch.FloatTensor(x), 0))
@@ -140,7 +141,7 @@ class DQN(object):
 
 
 
-class Margin_DQN_withbackway_Env(Env):
+class Margin_DQN_withbackway_Env_expand(Env):
     def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -159,7 +160,7 @@ class Margin_DQN_withbackway_Env(Env):
                          perception_system=perception_system,
                          safety_system=safety_system)
 
-        self.dqn = DQN(load_path="margin_net_with_backway_d1.pth")
+        self.dqn = DQN(load_path="margin_net_with_backway.pth")
         # self.dqn = DQN()
         # self.max_traffic_throughput = 0
         # self.max_fairness_metric = 0
@@ -338,210 +339,6 @@ class Margin_DQN_withbackway_Env(Env):
         self.cur_fairness_metric = self.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
         self.cur_traffic_throughput_with_noise = self.perception_system.get_traffic_throughput_with_noise(veh_ids)
 
-    # def calculate_reward(self):
-    #     veh_ids = self.k.vehicle.get_ids()
-    #     self.update_perception_safety_system()
-    #     if self.cur_fairness_metric == 0:
-    #         return 0
-    #     # self.cur_traffic_throughput = self.perception_system.get_traffic_throughput(veh_ids)
-    #     # self.cur_fairness_metric = self.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
-    #     #
-    #     # self.cur_traffic_throughput_with_noise = self.perception_system.get_traffic_throughput_with_noise(veh_ids)
-    #     cost_fairness_metric = (self.max_fairness_metric-self.cur_fairness_metric)/(self.max_fairness_metric+k)
-    #     cost_traffic_throughput = (self.max_traffic_throughput-self.cur_traffic_throughput)/(self.max_traffic_throughput+k)
-    #     r1 = (len(veh_ids) - cost_traffic_throughput)/(len(veh_ids)+k)
-    #     r2 = (len(veh_ids) - cost_fairness_metric)/(len(veh_ids)+k)
-    #     if r1 < 0:
-    #         r1 = 0
-    #     if r2 < 0:
-    #         r2 = 0
-    #     r_array = np.array([r1, r2])
-    #     r = np.dot(np.array(preference).T, r_array)
-    #
-    #     self.max_traffic_throughput = max(self.cur_traffic_throughput, self.max_traffic_throughput)
-    #     self.max_fairness_metric = max(self.cur_fairness_metric, self.max_fairness_metric)
-    #     return r
-
-    # def step(self, rl_actions):
-    #     for _ in range(self.env_params.sims_per_step):
-    #         self.time_counter += 1
-    #         self.step_counter += 1
-    #         # if len(self.k.vehicle.get_ids()) > 0:
-    #         #     for veh_id in self.k.vehicle.get_ids():
-    #         #         veh_type = self.k.vehicle.get_type(veh_id)
-    #         #         sensor_system = self.k.vehicle.type_parameters[veh_type]['sensor_system']
-    #         #         distance = sensor_system.get_data_with_noise("distance", self, veh_id)
-    #         #         velocity = sensor_system.get_data_with_noise("velocity", self, veh_id)
-    #         #         self.perception_system.update_data_with_noise("distance", veh_id, distance)
-    #         #         self.perception_system.update_data_with_noise("velocity", veh_id, velocity)
-    #         #         distance = sensor_system.get_data_without_noise("distance", self, veh_id)
-    #         #         velocity = sensor_system.get_data_without_noise("velocity", self, veh_id)
-    #         #         self.perception_system.update_data_without_noise("distance", veh_id, distance)
-    #         #         self.perception_system.update_data_without_noise("velocity", veh_id, velocity)
-    #         #
-    #         #         # self.perception_system
-    #         #     for veh_id in self.k.vehicle.get_ids():
-    #         #         self_velocity = self.perception_system.get_data_without_noise("velocity", veh_id)
-    #         #         lead_veh_id = self.k.vehicle.get_leader(veh_id)
-    #         #         if lead_veh_id:
-    #         #             lead_velocity = self.perception_system.get_data_without_noise("velocity", lead_veh_id)
-    #         #             headway = self.perception_system.get_data_without_noise("distance", veh_id)
-    #         #             self.safety_system.calculate_safety_metrics(veh_id=veh_id,
-    #         #                                                         headway=headway,
-    #         #                                                         self_velocity=self_velocity,
-    #         #                                                         lead_velocity=lead_velocity)
-    #         #         else:
-    #         #             self.safety_system.calculate_safety_metrics(veh_id=veh_id,
-    #         #                                                         headway=1e5,
-    #         #                                                         self_velocity=self_velocity,
-    #         #                                                         lead_velocity=lead_velocity)
-    #         # print(self.safety_system.get_fairness_metric(0.09, 0.1))
-    #         # print(self.safety_system.get_fairness_metric(0.09, 0.1))
-    #         # print(self.perception_system.get_traffic_throughput(self.k.vehicle.get_ids()))
-    #
-    #         # for veh_id in veh_ids:
-    #         # action  = DQN.choose_action()
-    #         # self.perception_system.set_margin(veh_id,margin)
-    #         # cur_state = self.get_state()
-    #         self.update_perception_safety_system()
-    #         cur_state = []
-    #         actions = []
-    #         for veh_id in self.k.vehicle.get_ids():
-    #             veh_state = self.get_state(veh_id)
-    #             # headway = self.perception_system.get_data_with_noise("distance", veh_id)
-    #             # self_velocity = self.perception_system.get_data_with_noise("velocity", veh_id)
-    #             # lead_veh_id = self.k.vehicle.get_leader(veh_id)
-    #             # if lead_veh_id:
-    #             #     lead_velocity = self.perception_system.get_data_with_noise("velocity", lead_veh_id)
-    #             # else:
-    #             #     lead_velocity = lead_velocity_threshold
-    #             action = self.dqn.choose_action(preference+veh_state)
-    #             self.perception_system.set_margin(veh_id, margin_list[action])
-    #             cur_state.append(veh_state[:])
-    #             actions.append(action)
-    #             # print(action)
-    #
-    #
-    #
-    #
-    #         # perform acceleration actions for controlled human-driven vehicles
-    #         if len(self.k.vehicle.get_controlled_ids()) > 0:
-    #             accel = []
-    #             for veh_id in self.k.vehicle.get_controlled_ids():
-    #                 action = self.k.vehicle.get_acc_controller(
-    #                     veh_id).get_action(self)
-    #                 accel.append(action)
-    #             self.k.vehicle.apply_acceleration(
-    #                 self.k.vehicle.get_controlled_ids(), accel)
-    #
-    #         # perform lane change actions for controlled human-driven vehicles
-    #         if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
-    #             direction = []
-    #             for veh_id in self.k.vehicle.get_controlled_lc_ids():
-    #                 target_lane = self.k.vehicle.get_lane_changing_controller(
-    #                     veh_id).get_action(self)
-    #                 direction.append(target_lane)
-    #             self.k.vehicle.apply_lane_change(
-    #                 self.k.vehicle.get_controlled_lc_ids(),
-    #                 direction=direction)
-    #
-    #         # perform (optionally) routing actions for all vehicles in the
-    #         # network, including RL and SUMO-controlled vehicles
-    #         routing_ids = []
-    #         routing_actions = []
-    #         for veh_id in self.k.vehicle.get_ids():
-    #             if self.k.vehicle.get_routing_controller(veh_id) \
-    #                     is not None:
-    #                 routing_ids.append(veh_id)
-    #                 route_contr = self.k.vehicle.get_routing_controller(
-    #                     veh_id)
-    #                 routing_actions.append(route_contr.choose_route(self))
-    #
-    #         self.k.vehicle.choose_routes(routing_ids, routing_actions)
-    #
-    #         self.apply_rl_actions(rl_actions)
-    #
-    #         self.additional_command()
-    #
-    #         # advance the simulation in the simulator by one step
-    #         self.k.simulation.simulation_step()
-    #
-    #         # store new observations in the vehicles and traffic lights class
-    #         self.k.update(reset=False)
-    #
-    #         # update the colors of vehicles
-    #         if self.sim_params.render:
-    #             self.k.vehicle.update_vehicle_colors()
-    #
-    #         # crash encodes whether the simulator experienced a collision
-    #         crash = self.k.simulation.check_collision()
-    #
-    #         # stop collecting new simulation steps if there is a collision
-    #         if crash:
-    #             break
-    #
-    #         # render a frame
-    #         self.render()
-    #
-    #     # r = self.calculate_reward()
-    #     veh_ids = self.k.vehicle.get_ids()
-    #
-    #     self.max_traffic_throughput_reward_dic = {}
-    #     self.min_traffic_throughput_reward_dic = {}
-    #     self.max_safety_reward_dic = {}
-    #     self.min_safety_reward_dic = {}
-    #     for i in range(len(veh_ids)):
-    #         veh_id = veh_ids[i]
-    #         veh_state = self.get_state(veh_id)
-    #         r1 = self.perception_system.get_data_without_noise("velocity", veh_id)/\
-    #              self.perception_system.get_data_without_noise("distance",veh_id)
-    #         r2 = self.cur_fairness_metric - self.safety_system.get_fairness_metric(lambda_para=1,beta=0.5,excluded_id=veh_id)
-    #         if veh_id in self.max_traffic_throughput_reward_dic.keys():
-    #             r1 = (r1-self.min_traffic_throughput_reward_dic[veh_id])/\
-    #                  (self.max_traffic_throughput_reward_dic[veh_id]-self.min_traffic_throughput_reward_dic[veh_id])
-    #         self.dqn.store_transition(preference+cur_state[i], actions[i], r, preference+veh_state)
-    #
-    #     if self.dqn.memory_counter > Memory_capacity:
-    #         self.dqn.learn()
-    #
-    #
-    #     # states = self.get_state()
-    #
-    #     # collect information of the state of the network based on the
-    #     # environment class used
-    #     # self.state = np.asarray(states).T
-    #
-    #     # collect observation new state associated with action
-    #     # next_observation = np.copy(states)
-    #
-    #     # test if the environment should terminate due to a collision or the
-    #     # time horizon being met
-    #     done = (self.time_counter >= self.env_params.sims_per_step *
-    #             (self.env_params.warmup_steps + self.env_params.horizon)
-    #             or crash)
-    #
-    #     # compute the info for each agent
-    #     infos = {}
-    #
-    #     # traffic_throughput = self.perceptionsystem.get_traffic_throughput(veh_ids)
-    #     # safety = self.safety_system
-    #     # r1 = DQN.max_throughtput-traffic_through_put
-    #     # r2 = DQN
-    #     # r = preference*r
-    #
-    #
-    #
-    #     # compute the reward
-    #     # if self.env_params.clip_actions:
-    #     #     rl_clipped = self.clip_actions(rl_actions)
-    #     #     reward = self.compute_reward(rl_clipped, fail=crash)
-    #     # else:
-    #     #     reward = self.compute_reward(rl_actions, fail=crash)
-    #     return None, r, done, infos
-    #
-    #     # return next_observation, reward, done, infos
-
-
     def step(self,rl_actions):
         if not self.max_safety_reward_dic.keys():
             veh_ids = self.k.vehicle.get_ids()
@@ -628,11 +425,12 @@ class Margin_DQN_withbackway_Env(Env):
             veh_state = self.get_state(veh_id)
             r1_ = self.perception_system.get_data_without_noise("velocity", veh_id)/\
                  self.perception_system.get_data_without_noise("distance", veh_id)
-            if self.perception_system.get_data_without_noise("distance", veh_id) < 2:
-                if self.perception_system.get_data_without_noise("velocity", veh_id) >0:
+            if self.perception_system.get_data_without_noise("distance", veh_id) < safety_distance:
+                if self.perception_system.get_data_without_noise("velocity", veh_id) > 0:
                     r1_ = 0
                 else:
                     r1_ = 0.1
+
             r2_ = self.cur_fairness_metric - self.safety_system.get_fairness_metric(lambda_para=1,beta=0.5,excluded_id=veh_id)
 
             r1 = (r1_-self.min_traffic_throughput_reward_dic[veh_id])/\
@@ -643,8 +441,6 @@ class Margin_DQN_withbackway_Env(Env):
                  (self.max_safety_reward_dic[veh_id]-self.min_safety_reward_dic[veh_id]+k)
             if r2 < 0:
                 r2 = 0
-
-
 
             r_array = np.array([r1, r2])
             r = np.dot(np.array(preference).T, r_array)

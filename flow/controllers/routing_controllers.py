@@ -36,7 +36,6 @@ class ContinuousRouter(BaseRouter):
             frac = [val[1] for val in env.available_routes[edge]]
             route_id = np.random.choice(
                 [i for i in range(num_routes)], size=1, p=frac)[0]
-
             # pass the chosen route
             return env.available_routes[edge][route_id][0]
         else:
