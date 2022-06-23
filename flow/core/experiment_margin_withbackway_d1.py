@@ -204,6 +204,7 @@ class Experiment:
             conn.close()
             flow.controllers.hit_history.initialize()
 
+
             # Save emission data at the end of every rollout. This is skipped
             # by the internal method if no emission path was specified.
             if self.env.simulator == "traci":

@@ -135,3 +135,5 @@ train_margin_withbackway.py
 reward*
 plot*
 train*
+safety_metric.pkl
+untrain_vel_data.pkl

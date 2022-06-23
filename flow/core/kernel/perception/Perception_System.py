@@ -34,6 +34,8 @@ class Perception_System():
     def get_margin(self, veh_id):
         if veh_id in self.__margin.keys():
             return self.__margin[veh_id]
+        else:
+            return 0
 
     def set_margin(self, veh_id, margin):
         self.__margin[veh_id] = margin

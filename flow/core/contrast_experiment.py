@@ -135,6 +135,10 @@ class Experiment:
         t = time.time()
         times = []
 
+        trained_vel = []
+        untrained_vel = []
+
+        safety_metric = []
         for i in range(num_runs):
             ret = 0
             vel = []
@@ -157,32 +161,35 @@ class Experiment:
 
                 if done:
                     break
-                # import sqlite3
-                # conn = sqlite3.connect('velocity_without_margin.db')
-                # c = conn.cursor()
-                # velocities = self.env.k.vehicle.get_speed(veh_ids)
-                # for index, veh_id in enumerate(veh_ids):
-                #     velocity = velocities[index]
-                #     c.execute('''Insert into velocity_without_margin values ('%s','%s','%s')''' % (veh_id, velocity, j))
-                # conn.commit()
-                # conn.close()
-
-                # import sqlite3
-                # conn = sqlite3.connect('Safety_metric_without_margin.db')
-                # c = conn.cursor()
-                # metric = self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
-                # c.execute('''Insert into Safety_metric_without_margin values (%s,%s)'''%(metric,time.time()))
-                # conn.commit()
-                # conn.close()
+                safety_metric.append(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
+                # temp_trained_vel = []
+                # temp_untrained_vel = []
+                # switch = 1
+                # for veh_id in veh_ids:
+                #     if switch:
+                #         temp = self.env.perception_system.get_data_without_noise("velocity",veh_id)/\
+                #                 self.env.perception_system.get_data_without_noise("distance",veh_id)
+                #         temp_trained_vel.append(temp)
+                #         switch = 0
+                #     else:
+                #         temp = self.env.perception_system.get_data_without_noise("velocity",veh_id)/\
+                #                 self.env.perception_system.get_data_without_noise("distance",veh_id)
+                #         temp_untrained_vel.append(temp)
+                #         switch = 1
                 #
-                # conn = sqlite3.connect('Throughput_without_margin.db')
-                # c = conn.cursor()
-                # throughput = self.env.perception_system.get_traffic_throughput(veh_ids)
-                # c.execute('''Insert into Throughput_without_margin values (%s,%s)'''%(throughput,time.time()))
-                # conn.commit()
-                # conn.close
-                print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
+                # trained_vel.append(np.sum(temp_trained_vel))
+                # untrained_vel.append(np.sum(temp_untrained_vel))
 
+
+                # print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
+            import dill as pickle
+            # f = open('train_vel_data.pkl', 'wb')
+            # pickle.dump(trained_vel, f)
+            # f1 = open('untrain_vel_data.pkl', 'wb')
+            # pickle.dump(untrained_vel, f1)
+
+            f2 = open('safety_metric.pkl', 'wb')
+            pickle.dump(safety_metric, f2)
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
             info_dict["returns"].append(ret)

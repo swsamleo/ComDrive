@@ -1,5 +1,6 @@
 from flow.core import rewards
 from flow.envs.base import Env
+from flow.utils.hyper_paras import collision_distance_offline
 from copy import deepcopy
 from gym.spaces.box import Box
 import random
@@ -19,22 +20,23 @@ import atexit
 import time
 import traceback
 
+
 preference = [0.5, 0.5]
 
 margin_list = np.linspace(-5, 5, 101)
 lead_velocity_threshold = 50
-backway_threshold = 1000
+backway_threshold=1000
 k = 1e-3
 
 # parameters
 Batch_size = 32
 Lr = 0.01
-Epsilon = 1  # greedy policy
+Epsilon = 0.9  # greedy policy
 Gamma = 0.9  # reward discount
 Target_replace_iter = 100  # target update frequency
-Memory_capacity = 5000
+Memory_capacity = 2000
 N_actions = len(margin_list)
-N_states = 8
+N_states = 7
 ENV_A_SHAPE = 0
 
 
@@ -85,7 +87,7 @@ class DQN(object):
             self.eval_net.load_state_dict(torch.load(load_path))
             print("network weights loaded successfully")
         else:
-            self.load_path = "margin_net_fairness_d1.pth"
+            self.load_path = "margin_net_fairness_TTC.pth"
 
     def choose_action(self, x):
         x = Variable(torch.unsqueeze(torch.FloatTensor(x), 0))
@@ -140,7 +142,7 @@ class DQN(object):
 
 
 
-class Margin_DQN_fairness_Env(Env):
+class Margin_DQN_fairness_plus_TTC_env(Env):
     def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -159,14 +161,16 @@ class Margin_DQN_fairness_Env(Env):
                          perception_system=perception_system,
                          safety_system=safety_system)
 
-        self.dqn = DQN(load_path="margin_net_fairness_d1.pth")
+        self.dqn = DQN(load_path="margin_net_fairness_TTC.pth")
         # self.dqn = DQN()
         # self.max_traffic_throughput = 0
         # self.max_fairness_metric = 0
         self.cur_fairness_metric = 0
         self.cur_traffic_throughput = 0
         self.cur_traffic_throughput_with_noise = 0
-        self.cur_throughput_fairness = 0
+
+        self.max_traffic_throughput = 15
+        self.max_safety_metric = 1
 
         self.max_traffic_throughput_reward_dic = {}
         self.min_traffic_throughput_reward_dic = {}
@@ -223,7 +227,7 @@ class Margin_DQN_fairness_Env(Env):
         self_speed = self.perception_system.get_data_with_noise("velocity", veh_id)
         lead_veh_id = self.k.vehicle.get_leader(veh_id)
         follower_veh_id = self.k.vehicle.get_follower(veh_id)
-        self_traffic_throughput_ratio = self_speed/(headway+k)/(self.cur_traffic_throughput_with_noise+k)
+        # self_traffic_throughput_ratio = self_speed/(headway+k)/(self.cur_traffic_throughput_with_noise+k)
         # if self_traffic_throughput_ratio > 0.6:
         #     print(self_traffic_throughput_ratio)
         if lead_veh_id and follower_veh_id:
@@ -242,7 +246,7 @@ class Margin_DQN_fairness_Env(Env):
             lead_speed = lead_velocity_threshold
             backway = backway_threshold
             follow_speed = 0
-        return [headway, self_speed, lead_speed, backway, follow_speed, self_traffic_throughput_ratio,]
+        return [headway, self_speed, lead_speed, backway, follow_speed,]
 
     def additional_command(self):
         """See parent class.
@@ -336,20 +340,20 @@ class Margin_DQN_fairness_Env(Env):
                                                                 self_velocity=self_velocity,
                                                                 lead_velocity=lead_velocity)
         self.cur_traffic_throughput = self.perception_system.get_traffic_throughput(veh_ids)
-
         self.cur_fairness_metric = self.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
         self.cur_traffic_throughput_with_noise = self.perception_system.get_traffic_throughput_with_noise(veh_ids)
-        self.cur_throughput_fairness = self.perception_system.get_throughput_metrics(lambda_para=1, beta=0.5,
-                                                                                     veh_ids=veh_ids)
+
+
 
     def step(self,rl_actions):
-        if not self.max_safety_reward_dic.keys():
-            veh_ids = self.k.vehicle.get_ids()
-            for veh_id in veh_ids:
-                self.max_safety_reward_dic[veh_id] = 0
-                self.min_safety_reward_dic[veh_id] = 1e5
-                self.max_traffic_throughput_reward_dic[veh_id] = 0
-                self.min_traffic_throughput_reward_dic[veh_id] = 1e5
+        # if not self.max_safety_reward_dic.keys():
+        #     veh_ids = self.k.vehicle.get_ids()
+        #     for veh_id in veh_ids:
+        #         self.max_safety_reward_dic[veh_id] = 0
+        #         self.min_safety_reward_dic[veh_id] = 1e5
+        #         self.max_traffic_throughput_reward_dic[veh_id] = 0
+        #         self.min_traffic_throughput_reward_dic[veh_id] = 1e5
+        rewards = 0
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
@@ -426,35 +430,39 @@ class Margin_DQN_fairness_Env(Env):
         for i in range(len(veh_ids)):
             veh_id = veh_ids[i]
             veh_state = self.get_state(veh_id)
+            r1_ = self.perception_system.get_data_without_noise("velocity", veh_id)/\
+                 self.perception_system.get_data_without_noise("distance", veh_id)
+            if self.perception_system.get_data_without_noise("distance", veh_id) <= collision_distance_offline:
+                r1_ = 0
 
-            r1_ = self.cur_throughput_fairness - self.perception_system.get_throughput_metrics(lambda_para=1, beta=0.5,
-                                                                                               veh_ids=veh_ids,
-                                                                                               excluded_id=veh_id)
 
             r2_ = self.cur_fairness_metric - self.safety_system.get_fairness_metric(lambda_para=1,beta=0.5,excluded_id=veh_id)
 
-            r1 = (r1_-self.min_traffic_throughput_reward_dic[veh_id])/\
-                 (self.max_traffic_throughput_reward_dic[veh_id]-self.min_traffic_throughput_reward_dic[veh_id]+k)
+
+
+            r1 = r1_ / self.max_traffic_throughput
+            r2 = r2_ / self.max_safety_metric
+
+
             if r1 < 0:
                 r1 = 0
-            r2 = (r2_-self.min_safety_reward_dic[veh_id])/ \
-                 (self.max_safety_reward_dic[veh_id]-self.min_safety_reward_dic[veh_id]+k)
+
             if r2 < 0:
                 r2 = 0
-            if r1_ < 0:
-                r1_ = 0
-            if r2_ < 0:
-                r2_ =0
+
+            # if r1 > 0 and r2 > 0:
+            #     print(r1/r2)
 
             r_array = np.array([r1, r2])
             r = np.dot(np.array(preference).T, r_array)
             if self.k.simulation.time <= self.k.simulation.sim_step:
                 r = 0
 
-            self.max_traffic_throughput_reward_dic[veh_id] = max(self.max_traffic_throughput_reward_dic[veh_id],r1_)
-            self.min_traffic_throughput_reward_dic[veh_id] = min(self.min_traffic_throughput_reward_dic[veh_id],r1_)
-            self.max_safety_reward_dic[veh_id] = max(self.max_safety_reward_dic[veh_id], r2_)
-            self.min_safety_reward_dic[veh_id] = min(self.min_safety_reward_dic[veh_id], r2_)
+            rewards += r
+            # self.max_traffic_throughput_reward_dic[veh_id] = max(self.max_traffic_throughput_reward_dic[veh_id],r1_)
+            # self.min_traffic_throughput_reward_dic[veh_id] = min(self.min_traffic_throughput_reward_dic[veh_id],r1_)
+            # self.max_safety_reward_dic[veh_id] = max(self.max_safety_reward_dic[veh_id],r2_)
+            # self.min_safety_reward_dic[veh_id] = min(self.min_safety_reward_dic[veh_id],r2_)
 
 
 
@@ -481,6 +489,6 @@ class Margin_DQN_fairness_Env(Env):
         # compute the info for each agent
         infos = {}
 
-        return None, self.cur_fairness_metric+self.cur_traffic_throughput, done, infos
+        return None, rewards, done, infos
 
 

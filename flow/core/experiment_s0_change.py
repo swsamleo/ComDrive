@@ -181,7 +181,10 @@ class Experiment:
                 # c.execute('''Insert into Throughput_without_margin values (%s,%s)'''%(throughput,time.time()))
                 # conn.commit()
                 # conn.close
-                print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
+                # print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
+
+
+
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
@@ -195,6 +198,16 @@ class Experiment:
             print("Round {0}, return: {1}".format(i, ret))
 
 
+
+            import flow.controllers.hit_history
+            import sqlite3
+            conn = sqlite3.connect('reward_ring_network_s0_change.db')
+            c = conn.cursor()
+            c.execute('''Insert into reward_ring_network_s0_change 
+                        values(%s,%s,%s)''' % (ret, flow.controllers.hit_history.hit_id, time.time()))
+            conn.commit()
+            conn.close()
+            flow.controllers.hit_history.initialize()
 
 
             # Save emission data at the end of every rollout. This is skipped

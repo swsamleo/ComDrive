@@ -23,13 +23,13 @@ preference = [0.5, 0.5]
 
 margin_list = np.linspace(-5, 5, 101)
 lead_velocity_threshold = 50
-backway_threshold = 1000
+backway_threshold=1000
 k = 1e-3
 
 # parameters
 Batch_size = 32
 Lr = 0.01
-Epsilon = 1  # greedy policy
+Epsilon = 0.9  # greedy policy
 Gamma = 0.9  # reward discount
 Target_replace_iter = 100  # target update frequency
 Memory_capacity = 5000
@@ -85,7 +85,7 @@ class DQN(object):
             self.eval_net.load_state_dict(torch.load(load_path))
             print("network weights loaded successfully")
         else:
-            self.load_path = "margin_net_fairness_d1.pth"
+            self.load_path = "margin_net_s0_change.pth"
 
     def choose_action(self, x):
         x = Variable(torch.unsqueeze(torch.FloatTensor(x), 0))
@@ -140,7 +140,7 @@ class DQN(object):
 
 
 
-class Margin_DQN_fairness_Env(Env):
+class Margin_DQN_s0_change_Env(Env):
     def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -159,14 +159,16 @@ class Margin_DQN_fairness_Env(Env):
                          perception_system=perception_system,
                          safety_system=safety_system)
 
-        self.dqn = DQN(load_path="margin_net_fairness_d1.pth")
+        self.dqn = DQN(load_path="margin_net_s0_change.pth")
         # self.dqn = DQN()
         # self.max_traffic_throughput = 0
         # self.max_fairness_metric = 0
         self.cur_fairness_metric = 0
         self.cur_traffic_throughput = 0
         self.cur_traffic_throughput_with_noise = 0
-        self.cur_throughput_fairness = 0
+
+        self.max_traffic_throughput = 15
+        self.max_safety_metric = 1
 
         self.max_traffic_throughput_reward_dic = {}
         self.min_traffic_throughput_reward_dic = {}
@@ -336,11 +338,10 @@ class Margin_DQN_fairness_Env(Env):
                                                                 self_velocity=self_velocity,
                                                                 lead_velocity=lead_velocity)
         self.cur_traffic_throughput = self.perception_system.get_traffic_throughput(veh_ids)
-
         self.cur_fairness_metric = self.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
         self.cur_traffic_throughput_with_noise = self.perception_system.get_traffic_throughput_with_noise(veh_ids)
-        self.cur_throughput_fairness = self.perception_system.get_throughput_metrics(lambda_para=1, beta=0.5,
-                                                                                     veh_ids=veh_ids)
+
+
 
     def step(self,rl_actions):
         if not self.max_safety_reward_dic.keys():
@@ -426,35 +427,31 @@ class Margin_DQN_fairness_Env(Env):
         for i in range(len(veh_ids)):
             veh_id = veh_ids[i]
             veh_state = self.get_state(veh_id)
-
-            r1_ = self.cur_throughput_fairness - self.perception_system.get_throughput_metrics(lambda_para=1, beta=0.5,
-                                                                                               veh_ids=veh_ids,
-                                                                                               excluded_id=veh_id)
+            r1_ = self.perception_system.get_data_without_noise("velocity", veh_id)/\
+                 self.perception_system.get_data_without_noise("distance", veh_id)
 
             r2_ = self.cur_fairness_metric - self.safety_system.get_fairness_metric(lambda_para=1,beta=0.5,excluded_id=veh_id)
 
-            r1 = (r1_-self.min_traffic_throughput_reward_dic[veh_id])/\
-                 (self.max_traffic_throughput_reward_dic[veh_id]-self.min_traffic_throughput_reward_dic[veh_id]+k)
+            r1 = r1_ / self.max_traffic_throughput
+            r2 = r2_ / self.max_safety_metric
+
             if r1 < 0:
                 r1 = 0
-            r2 = (r2_-self.min_safety_reward_dic[veh_id])/ \
-                 (self.max_safety_reward_dic[veh_id]-self.min_safety_reward_dic[veh_id]+k)
+
             if r2 < 0:
                 r2 = 0
-            if r1_ < 0:
-                r1_ = 0
-            if r2_ < 0:
-                r2_ =0
+
+
 
             r_array = np.array([r1, r2])
             r = np.dot(np.array(preference).T, r_array)
             if self.k.simulation.time <= self.k.simulation.sim_step:
                 r = 0
 
-            self.max_traffic_throughput_reward_dic[veh_id] = max(self.max_traffic_throughput_reward_dic[veh_id],r1_)
-            self.min_traffic_throughput_reward_dic[veh_id] = min(self.min_traffic_throughput_reward_dic[veh_id],r1_)
-            self.max_safety_reward_dic[veh_id] = max(self.max_safety_reward_dic[veh_id], r2_)
-            self.min_safety_reward_dic[veh_id] = min(self.min_safety_reward_dic[veh_id], r2_)
+            # self.max_traffic_throughput_reward_dic[veh_id] = max(self.max_traffic_throughput_reward_dic[veh_id],r1_)
+            # self.min_traffic_throughput_reward_dic[veh_id] = min(self.min_traffic_throughput_reward_dic[veh_id],r1_)
+            # self.max_safety_reward_dic[veh_id] = max(self.max_safety_reward_dic[veh_id],r2_)
+            # self.min_safety_reward_dic[veh_id] = min(self.min_safety_reward_dic[veh_id],r2_)
 
 
 
