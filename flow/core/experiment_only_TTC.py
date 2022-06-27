@@ -5,7 +5,7 @@ import logging
 import time
 import numpy as np
 import sqlite3
-import math
+
 class Experiment:
     """
     Class for systematically running simulations in any supported simulator.
@@ -135,15 +135,6 @@ class Experiment:
         t = time.time()
         times = []
 
-        trained_vel = []
-        untrained_vel = []
-
-        safety_metric = []
-        throughput_data = []
-        velocity_data = {}
-        headway_data = {}
-        fairness_data = []
-        TTC_data = []
         for i in range(num_runs):
             ret = 0
             vel = []
@@ -159,7 +150,6 @@ class Experiment:
                 veh_ids = self.env.k.vehicle.get_ids()
                 vel.append(np.mean(self.env.k.vehicle.get_speed(veh_ids)))
                 ret += reward
-
                 # Compute the results for the custom callables.
                 for (key, lambda_func) in self.custom_callables.items():
                     custom_vals[key].append(lambda_func(self.env))
@@ -167,67 +157,41 @@ class Experiment:
                 if done:
                     break
 
-                safety_metric.append(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
-                throughput_data.append(self.env.perception_system.get_traffic_throughput(veh_ids=veh_ids))
-                temp_sum_TTC = 0
-                for veh_id in veh_ids:
-                    if veh_id in velocity_data:
-                        velocity_data[veh_id].append(self.env.perception_system.get_data_without_noise("velocity",veh_id))
-                    else:
-                        velocity_data[veh_id] = [self.env.perception_system.get_data_without_noise("velocity", veh_id)]
-                    if veh_id in headway_data:
-                        headway_data[veh_id].append(self.env.perception_system.get_data_without_noise("distance",veh_id))
-                    else:
-                        headway_data[veh_id] =[self.env.perception_system.get_data_without_noise("distance", veh_id)]
-                    temp_sum_TTC += self.env.safety_system.get_safety_data("TTC",veh_id)
-                TTC_data.append(temp_sum_TTC)
-                fairness_data.append(safety_metric[-1]-math.log(temp_sum_TTC,2.72))
+                import sqlite3
+                conn = sqlite3.connect('reward_ring_only_TTC.db')
+                c = conn.cursor()
+                c.execute('''Insert into reward_ring_only_TTC
+                            values(%s,%s,%s)''' % (reward, 0, time.time()))
+                conn.commit()
+                conn.close()
+                # import sqlite3
+                # conn = sqlite3.connect('velocity_without_margin.db')
+                # c = conn.cursor()
+                # velocities = self.env.k.vehicle.get_speed(veh_ids)
+                # for index, veh_id in enumerate(veh_ids):
+                #     velocity = velocities[index]
+                #     c.execute('''Insert into velocity_without_margin values ('%s','%s','%s')''' % (veh_id, velocity, j))
+                # conn.commit()
+                # conn.close()
 
-                # temp_trained_vel = []
-                # temp_untrained_vel = []
-                # switch = 1
-                # for veh_id in veh_ids:
-                #     if switch:
-                #         temp = self.env.perception_system.get_data_without_noise("velocity",veh_id)/\
-                #                 self.env.perception_system.get_data_without_noise("distance",veh_id)
-                #         temp_trained_vel.append(temp)
-                #         switch = 0
-                #     else:
-                #         temp = self.env.perception_system.get_data_without_noise("velocity",veh_id)/\
-                #                 self.env.perception_system.get_data_without_noise("distance",veh_id)
-                #         temp_untrained_vel.append(temp)
-                #         switch = 1
+                # import sqlite3
+                # conn = sqlite3.connect('Safety_metric_without_margin.db')
+                # c = conn.cursor()
+                # metric = self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5)
+                # c.execute('''Insert into Safety_metric_without_margin values (%s,%s)'''%(metric,time.time()))
+                # conn.commit()
+                # conn.close()
                 #
-                # trained_vel.append(np.sum(temp_trained_vel))
-                # untrained_vel.append(np.sum(temp_untrained_vel))
-
-
+                # conn = sqlite3.connect('Throughput_without_margin.db')
+                # c = conn.cursor()
+                # throughput = self.env.perception_system.get_traffic_throughput(veh_ids)
+                # c.execute('''Insert into Throughput_without_margin values (%s,%s)'''%(throughput,time.time()))
+                # conn.commit()
+                # conn.close
                 # print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
-            import dill as pickle
-            # f = open('train_vel_data.pkl', 'wb')
-            # pickle.dump(trained_vel, f)
-            # f1 = open('untrain_vel_data.pkl', 'wb')
-            # pickle.dump(untrained_vel, f1)
 
-            f2 = open('safety_metric.pkl', 'wb')
-            pickle.dump(safety_metric, f2)
-            f3 = open('throughput_data.pkl',"wb")
-            pickle.dump(throughput_data, f3)
-            from flow.controllers.hit_history import hit_histroies
-            f4 = open("hit_histories.pkl","wb")
-            pickle.dump(hit_histroies,f4)
 
-            f5 = open("velocities_data.pkl","wb")
-            pickle.dump(velocity_data, f5)
 
-            f6 = open("headway_data.pkl","wb")
-            pickle.dump(headway_data,f6)
-
-            f7 = open("fairness_data.pkl","wb")
-            pickle.dump(fairness_data,f7)
-
-            f8 = open('TTC_data.pkl',"wb")
-            pickle.dump(TTC_data,f8)
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
@@ -241,6 +205,16 @@ class Experiment:
             print("Round {0}, return: {1}".format(i, ret))
 
 
+
+            # import flow.controllers.hit_history
+            # import sqlite3
+            # conn = sqlite3.connect('reward_ring_only_TTC.db')
+            # c = conn.cursor()
+            # c.execute('''Insert into reward_ring_only_TTC
+            #             values(%s,%s,%s)''' % (ret, flow.controllers.hit_history.hit_id, time.time()))
+            # conn.commit()
+            # conn.close()
+            # flow.controllers.hit_history.initialize()
 
 
             # Save emission data at the end of every rollout. This is skipped

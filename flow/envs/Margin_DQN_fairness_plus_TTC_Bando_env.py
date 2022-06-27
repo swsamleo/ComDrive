@@ -87,7 +87,7 @@ class DQN(object):
             self.eval_net.load_state_dict(torch.load(load_path))
             print("network weights loaded successfully")
         else:
-            self.load_path = "margin_net_fairness_TTC.pth"
+            self.load_path = "margin_net_fairness_TTC_bando.pth"
 
     def choose_action(self, x):
         x = Variable(torch.unsqueeze(torch.FloatTensor(x), 0))
@@ -142,7 +142,7 @@ class DQN(object):
 
 
 
-class Margin_DQN_fairness_plus_TTC_env(Env):
+class Margin_DQN_fairness_plus_TTC_Bando_env(Env):
     def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -161,7 +161,7 @@ class Margin_DQN_fairness_plus_TTC_env(Env):
                          perception_system=perception_system,
                          safety_system=safety_system)
 
-        self.dqn = DQN(load_path="margin_net_fairness_TTC.pth")
+        self.dqn = DQN(load_path="margin_net_fairness_TTC_bando.pth")
         # self.dqn = DQN()
         # self.max_traffic_throughput = 0
         # self.max_fairness_metric = 0
@@ -169,8 +169,8 @@ class Margin_DQN_fairness_plus_TTC_env(Env):
         self.cur_traffic_throughput = 0
         self.cur_traffic_throughput_with_noise = 0
 
-        self.max_traffic_throughput = 15
-        self.max_safety_metric = 1
+        self.max_traffic_throughput = 5
+        self.max_safety_metric = 0.05
 
         self.max_traffic_throughput_reward_dic = {}
         self.min_traffic_throughput_reward_dic = {}

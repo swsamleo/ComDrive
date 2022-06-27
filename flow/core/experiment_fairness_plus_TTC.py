@@ -156,6 +156,15 @@ class Experiment:
 
                 if done:
                     break
+
+
+                import sqlite3
+                conn = sqlite3.connect('reward_ring_fairness_plus_TTC.db')
+                c = conn.cursor()
+                c.execute('''Insert into reward_ring_fairness_plus_TTC
+                            values(%s,%s,%s)''' % (reward, 0, time.time()))
+                conn.commit()
+                conn.close()
                 # import sqlite3
                 # conn = sqlite3.connect('velocity_without_margin.db')
                 # c = conn.cursor()
@@ -198,15 +207,15 @@ class Experiment:
 
 
 
-            import flow.controllers.hit_history
-            import sqlite3
-            conn = sqlite3.connect('reward_ring_fairness_plus_TTC.db')
-            c = conn.cursor()
-            c.execute('''Insert into reward_ring_fairness_plus_TTC
-                        values(%s,%s,%s)''' % (ret, flow.controllers.hit_history.hit_id, time.time()))
-            conn.commit()
-            conn.close()
-            flow.controllers.hit_history.initialize()
+            # import flow.controllers.hit_history
+            # import sqlite3
+            # conn = sqlite3.connect('reward_ring_fairness_plus_TTC.db')
+            # c = conn.cursor()
+            # c.execute('''Insert into reward_ring_fairness_plus_TTC
+            #             values(%s,%s,%s)''' % (ret, flow.controllers.hit_history.hit_id, time.time()))
+            # conn.commit()
+            # conn.close()
+            # flow.controllers.hit_history.initialize()
 
 
             # Save emission data at the end of every rollout. This is skipped

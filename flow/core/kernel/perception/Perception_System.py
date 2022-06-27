@@ -1,5 +1,6 @@
 "prevent divide by zero"
 k = 1e-3
+from flow.utils.hyper_paras import collision_distance_offline
 import math
 class Perception_System():
     def __init__(self):
@@ -49,10 +50,11 @@ class Perception_System():
     def get_traffic_throughput(self, veh_ids, excluded_id=None):
         temp_traffic_throughput = 0
         for veh_id in veh_ids:
-            if veh_id != excluded_id:
+            if veh_id != excluded_id and self.__data_with_noise["distance"][veh_id] > collision_distance_offline:
                 temp_traffic_throughput += self.__data_without_noise["velocity"][veh_id] / (self.__data_without_noise["distance"][veh_id]+k)
         return temp_traffic_throughput
 
+    #REMOVE
     def get_traffic_throughput_with_noise(self, veh_ids, excluded_id=None):
         temp_traffic_throughput = 0
         for veh_id in veh_ids:

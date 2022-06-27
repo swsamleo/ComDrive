@@ -137,3 +137,9 @@ plot*
 train*
 safety_metric.pkl
 untrain_vel_data.pkl
+/velocities_data.pkl
+/TTC_data.pkl
+/throughput_data.pkl
+/fairness_data.pkl
+/headway_data.pkl
+/hit_histories.pkl

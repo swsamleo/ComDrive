@@ -1,6 +1,6 @@
 import numpy as np
 def generate_Gaussian_error(error_size):
-    return np.random.normal(0,error_size)
+    return np.random.normal(0, error_size)
 
 def generate_Absolute_error(error_size):
     return  error_size

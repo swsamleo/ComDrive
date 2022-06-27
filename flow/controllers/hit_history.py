@@ -1,13 +1,18 @@
-
+import dill as pickle
 hit_id = 0
 current_hit = {}
-hit_histroies = {}
 
-def initialize():
-    global hit_id,current_hit,hit_histroies
-    hit_id = 0
-    current_hit = {}
-    hit_histroies = {}
+# hit_histroies = {}
+# f = open("hit_histories.pkl", 'wb')
+# pickle.dump(hit_histroies,f)
+f4 = open("hit_histories.pkl", 'rb')
+hit_histroies = pickle.load(f4)
+
+# def initialize():
+#     global hit_id,current_hit,hit_histroies
+#     hit_id = 0
+#     current_hit = {}
+#     hit_histroies = {}
 
 class Hit_History():
     def __init__(self,
