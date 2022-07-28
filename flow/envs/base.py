@@ -332,6 +332,7 @@ class Env(gym.Env, metaclass=ABCMeta):
             self.step_counter += 1
             if len(self.k.vehicle.get_ids()) > 0:
                 for veh_id in self.k.vehicle.get_ids():
+                    print(veh_id, self.k.vehicle.get_leader(veh_id))
                     veh_type = self.k.vehicle.get_type(veh_id)
                     sensor_system = self.k.vehicle.type_parameters[veh_type]['sensor_system']
                     distance = sensor_system.get_data_with_noise("distance", self, veh_id)

@@ -5,6 +5,16 @@ def generate_Gaussian_error(error_size):
 def generate_Absolute_error(error_size):
     return  error_size
 
+def generate_Uniform_error(error_size):
+    return np.random.uniform(-error_size, error_size)
+
+def generate_Laplace_error(error_size):
+    if error_size > 0:
+        return np.random.laplace(0, error_size)
+    else:
+        return 0
+
+
 def generate_no_error(error_size=0):
     return 0
 

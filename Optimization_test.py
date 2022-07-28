@@ -14,7 +14,7 @@ for i in range(1):
     from flow.controllers.car_following_models import IDMController_predict_margin_with_noise,\
         IDMController_with_noise,IDMController,LACController, IDMController_predict_margin_with_noise2,\
         OVMController,LinearOVM,BandoFTLController,CFMController,BCMController,BandoFTLController_with_noise,\
-        BandoController_predict_margin_with_noise,CFMController_with_noise
+        BandoController_predict_margin_with_noise, IDMController_with_noise_margin
     from flow.controllers.routing_controllers import ContinuousRouter
     from flow.core.kernel.sensor.Sensor_System import Sensor_System
 
@@ -46,7 +46,7 @@ for i in range(1):
     #              color="white")
 
     vehicles.add("testing_car",
-                 acceleration_controller=(IDMController_predict_margin_with_noise2, {"fail_safe": 'instantaneous'}),
+                 acceleration_controller=(IDMController_with_noise_margin, {"fail_safe": 'instantaneous'}),
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=20,
                  car_following_params=sumo_car_following_para1,
@@ -451,7 +451,7 @@ for i in range(1):
     traffic_lights = TrafficLightParams()
 
 
-    from flow.envs.ring.accel import AccelEnv
+    from flow.envs.ring.optimization import OptimizationEnv
     from flow.envs.Margin_DQN_withbackway_env import Margin_DQN_withbackway_Env
 
     from flow.core.params import SumoParams
@@ -485,7 +485,7 @@ for i in range(1):
 
     flow_params = dict(
         exp_tag='ring_example',
-        env_name=AccelEnv,
+        env_name=OptimizationEnv,
         network=RingNetwork,
         simulator='traci',
         sim=sim_params,

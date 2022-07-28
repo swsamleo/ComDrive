@@ -29,7 +29,7 @@ class Sensor_System():
                             "angle": True
                             }
 
-    def add_new_sensor(self,sensor_type, sensor_name, error_type=None,error_size=None):
+    def add_new_sensor(self, sensor_type, sensor_name, error_type=None, error_size=None):
         if sensor_type not in self.__sensors.keys():
             raise Exception("no supported sensor_type please choose from %s"%self.__sensors.keys())
         if sensor_name in Sensor[sensor_type].keys():

@@ -1,2 +1,2 @@
 
-collision_distance_offline = 1
+collision_distance_offline = 2

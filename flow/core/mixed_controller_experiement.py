@@ -152,13 +152,13 @@ class Experiment:
         fairness_data = []
         # TTC_data = []
         TTC_each_data = {}
+        acce = {}
         for i in range(num_runs):
             ret = 0
             vel = []
             custom_vals = {key: [] for key in self.custom_callables.keys()}
             state = self.env.reset()
             for j in range(num_steps):
-                print(j)
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 t1 = time.time()
@@ -181,20 +181,29 @@ class Experiment:
                 temp_sum_TTC = 0
                 for veh_id in veh_ids:
                     if veh_id in velocity_data:
-                        velocity_data[veh_id].append(self.env.perception_system.get_data_without_noise("velocity",veh_id))
+                        velocity_data[veh_id].append(
+                            self.env.perception_system.get_data_without_noise("velocity", veh_id))
                     else:
                         velocity_data[veh_id] = [self.env.perception_system.get_data_without_noise("velocity", veh_id)]
                     if veh_id in headway_data:
-                        headway_data[veh_id].append(self.env.perception_system.get_data_without_noise("distance",veh_id))
+                        headway_data[veh_id].append(
+                            self.env.perception_system.get_data_without_noise("distance", veh_id))
                     else:
-                        headway_data[veh_id] =[self.env.perception_system.get_data_without_noise("distance", veh_id)]
+                        headway_data[veh_id] = [self.env.perception_system.get_data_without_noise("distance", veh_id)]
                     if veh_id in TTC_each_data:
-                        TTC_each_data[veh_id].append(self.env.safety_system.get_safety_data(metric="TTC",veh_id=veh_id))
+                        TTC_each_data[veh_id].append(
+                            self.env.safety_system.get_safety_data(metric="TTC", veh_id=veh_id))
                     else:
-                        TTC_each_data[veh_id] =[self.env.safety_system.get_safety_data(metric="TTC",veh_id=veh_id)]
-                    temp_sum_TTC += self.env.safety_system.get_safety_data("TTC",veh_id)
+                        TTC_each_data[veh_id] = [self.env.safety_system.get_safety_data(metric="TTC", veh_id=veh_id)]
+                    if veh_id in acce:
+                        acce[veh_id].append(self.env.k.vehicle.get_acc_controller(
+                            veh_id).get_accel(self.env))
+                    else:
+                        acce[veh_id] = [self.env.k.vehicle.get_acc_controller(
+                            veh_id).get_accel(self.env)]
+                    temp_sum_TTC += self.env.safety_system.get_safety_data("TTC", veh_id)
                 TTC_data.append(temp_sum_TTC)
-                fairness_data.append(safety_metric[-1]-math.log(temp_sum_TTC,2.72))
+                fairness_data.append(safety_metric[-1] - math.log(temp_sum_TTC, 2.72))
 
                 # temp_trained_vel = []
                 # temp_untrained_vel = []
@@ -214,7 +223,6 @@ class Experiment:
                 # trained_vel.append(np.sum(temp_trained_vel))
                 # untrained_vel.append(np.sum(temp_untrained_vel))
 
-
                 # print(self.env.safety_system.get_fairness_metric(lambda_para=1, beta=0.5))
             import dill as pickle
             # f = open('train_vel_data.pkl', 'wb')
@@ -224,26 +232,29 @@ class Experiment:
 
             # f2 = open('safety_metric.pkl', 'wb')
             # pickle.dump(safety_metric, f2)
-            f3 = open('metric_data/throughput_data.pkl',"wb")
+            f3 = open('metric_data/throughput_data.pkl', "wb")
             pickle.dump(throughput_data, f3)
             # from flow.controllers.hit_history import hit_histroies
             # f4 = open("hit_histories.pkl","wb")
             # pickle.dump(hit_histroies,f4)
 
-            # f5 = open("velocities_data.pkl","wb")
-            # pickle.dump(velocity_data, f5)
+            f5 = open("metric_data/velocities_data.pkl","wb")
+            pickle.dump(velocity_data, f5)
 
-            f6 = open("metric_data/headway_data.pkl","wb")
-            pickle.dump(headway_data,f6)
+            f6 = open("metric_data/headway_data.pkl", "wb")
+            pickle.dump(headway_data, f6)
 
             # f7 = open("fairness_data.pkl","wb")
             # pickle.dump(fairness_data,f7)
 
-            f8 = open('metric_data/TTC_data.pkl',"wb")
-            pickle.dump(TTC_data,f8)
+            f8 = open('metric_data/TTC_data.pkl', "wb")
+            pickle.dump(TTC_data, f8)
 
             f9 = open('metric_data/TTC_each_data.pkl', "wb")
             pickle.dump(TTC_each_data, f9)
+
+            f10 = open("metric_data/acce_data.pkl","wb")
+            pickle.dump(acce,f10)
 
             # Store the information from the run in info_dict.
             outflow = self.env.k.vehicle.get_outflow_rate(int(500))
