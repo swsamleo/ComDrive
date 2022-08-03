@@ -88,6 +88,7 @@ def make_create_env(params, version=0, render=None):
     traffic_lights = params.get("tls", TrafficLightParams())
     perception_system = params["perception_system"]
     safety_system = params["safety_system"]
+    data_center = params["data_center"]
 
     def create_env(*_):
         sim_params = deepcopy(params['sim'])
@@ -128,7 +129,8 @@ def make_create_env(params, version=0, render=None):
                 "network": network,
                 "simulator": params['simulator'],
                 "perception_system": perception_system,
-                "safety_system": safety_system
+                "safety_system": safety_system,
+                "data_center": data_center
             })
 
         return gym.envs.make(env_name)

@@ -18,6 +18,10 @@ for i in range(1):
     from flow.controllers.routing_controllers import ContinuousRouter
     from flow.core.kernel.sensor.Sensor_System import Sensor_System
 
+    from flow.core.kernel.sensor_system.Sensor_System import SensorSystem
+    from flow.core.kernel.sensor_system.Sensor_Func import generate_Gaussian_noise
+    sensorsystem = SensorSystem()
+    sensorsystem.add_new_sensor("distance", "GPS", noise_function=generate_Gaussian_noise)
 
     #perception_module
     sensor_system = Sensor_System()
@@ -51,7 +55,8 @@ for i in range(1):
                  num_vehicles=20,
                  car_following_params=sumo_car_following_para1,
                  sensor_system=sensor_system,
-                 color="white")
+                 color="white",
+                 sensorsystem=sensorsystem)
 
     # vehicles.add("human_0",
     #              acceleration_controller=(IDMController_predict_margin_with_noise, {"fail_safe": 'instantaneous'}),
@@ -482,6 +487,8 @@ for i in range(1):
 
     from flow.core.kernel.safety.Safety_System import Safety_System
     safety_system = Safety_System()
+    from flow.core.kernel.data_center.data_center import DataCenter
+    data_center = DataCenter()
 
     flow_params = dict(
         exp_tag='ring_example',
@@ -495,7 +502,8 @@ for i in range(1):
         initial=initial_config,
         tls=traffic_lights,
         perception_system=perception_system,
-        safety_system=safety_system
+        safety_system=safety_system,
+        data_center=data_center
     )
 
     # number of time steps

@@ -66,7 +66,8 @@ class AccelEnv(Env):
         metrics to track
     """
 
-    def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None):
+    def __init__(self, env_params, sim_params, network, simulator='traci', perception_system=None, safety_system=None,
+                 data_center=None):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -82,7 +83,8 @@ class AccelEnv(Env):
                          network=network,
                          simulator=simulator,
                          perception_system=perception_system,
-                         safety_system=safety_system)
+                         safety_system=safety_system,
+                         data_center=data_center)
 
     @property
     def action_space(self):

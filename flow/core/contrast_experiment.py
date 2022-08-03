@@ -158,7 +158,6 @@ class Experiment:
             custom_vals = {key: [] for key in self.custom_callables.keys()}
             state = self.env.reset()
             for j in range(num_steps):
-                print(j)
                 t0 = time.time()
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 t1 = time.time()

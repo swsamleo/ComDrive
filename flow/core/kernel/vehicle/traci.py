@@ -303,6 +303,8 @@ class TraCIVehicle(KernelVehicle):
             accel_controller[0](veh_id,
                                 car_following_params=car_following_params,
                                 **accel_controller[1])
+        sensor_system = self.type_parameters[veh_type]['sensorsystem']
+        self.__vehicles[veh_id]['sensor_system'] = sensor_system
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -463,6 +465,9 @@ class TraCIVehicle(KernelVehicle):
     def get_ids(self):
         """See parent class."""
         return self.__ids
+
+    def get_sensor_system(self, veh_id):
+        return self.__vehicles[veh_id]["sensor_system"]
 
     def get_human_ids(self):
         """See parent class."""

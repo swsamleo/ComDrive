@@ -1630,7 +1630,13 @@ class IDMController_with_noise(BaseController):
     def get_accel(self, env):
         """See parent class."""
         # in order to deal with ZeroDivisionError
-        h = env.perception_system.get_data_with_noise("distance", self.veh_id)
+        # h = env.perception_system.get_data_with_noise("distance", self.veh_id)
+        h = env.data_center.get_data(data_center_name='sensor', veh_id=(self.veh_id), detect_type='distance',
+                                     step=(env.k.simulation.time))
+        h = float(h)
+        noise_h = env.data_center.get_data(data_center_name='sensor', veh_id=(self.veh_id), detect_type='distance',
+                                           step=(env.k.simulation.time))
+        h += float(noise_h)
         v = env.perception_system.get_data_with_noise("velocity", self.veh_id)
         lead_id = env.k.vehicle.get_leader(self.veh_id)
         lead_vel = env.perception_system.get_data_with_noise("velocity", lead_id)

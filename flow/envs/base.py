@@ -107,7 +107,8 @@ class Env(gym.Env, metaclass=ABCMeta):
                  simulator='traci',
                  scenario=None,
                  perception_system=None,
-                 safety_system=None):
+                 safety_system=None,
+                 data_center=None):
         """Initialize the environment class.
 
         Parameters
@@ -232,6 +233,7 @@ class Env(gym.Env, metaclass=ABCMeta):
 
         self.perception_system = perception_system
         self.safety_system = safety_system
+        self.data_center = data_center
         atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
@@ -332,7 +334,6 @@ class Env(gym.Env, metaclass=ABCMeta):
             self.step_counter += 1
             if len(self.k.vehicle.get_ids()) > 0:
                 for veh_id in self.k.vehicle.get_ids():
-                    print(veh_id, self.k.vehicle.get_leader(veh_id))
                     veh_type = self.k.vehicle.get_type(veh_id)
                     sensor_system = self.k.vehicle.type_parameters[veh_type]['sensor_system']
                     distance = sensor_system.get_data_with_noise("distance", self, veh_id)
@@ -343,6 +344,38 @@ class Env(gym.Env, metaclass=ABCMeta):
                     velocity = sensor_system.get_data_without_noise("velocity", self, veh_id)
                     self.perception_system.update_data_without_noise("distance", veh_id, distance)
                     self.perception_system.update_data_without_noise("velocity", veh_id, velocity)
+
+
+                    sensor_system = self.k.vehicle.get_sensor_system(veh_id)
+                    distance_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'distance')
+                    self.data_center.update_data(data_center_name='sensor', data=[
+                        veh_id, 'distance', distance_data, self.k.simulation.time])
+                    velocity_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'velocity')
+                    self.data_center.update_data(data_center_name='sensor', data=[
+                        veh_id, 'velocity', velocity_data, self.k.simulation.time])
+                    distance_noise_list = []
+                    fuse_function = self.data_center.fused_noise_data_center.get_fuse_function()
+                    for sensor_infor in sensor_system.get_sensors():
+                        detect_type = sensor_infor[0]
+                        sensor_name = sensor_infor[1]
+                        noise_function = sensor_infor[2]
+                        noise = noise_function()
+                        self.data_center.update_data(data_center_name='individual_noise', data=[
+                            veh_id, detect_type, sensor_name, noise, self.k.simulation.time])
+                        if detect_type == 'distance':
+                            distance_noise_list.append(noise)
+
+                    fused_distance_noise = fuse_function(distance_noise_list)
+                    self.data_center.update_data(data_center_name='fused_noise', data=[
+                        veh_id, 'distance', fused_distance_noise, self.k.simulation.time])
+
+                for veh_id in self.k.vehicle.get_ids():
+                    self.data_center.individual_metric_data_center.calculate_metrics(self, veh_id)
+
+                self.data_center.overall_metric_data_center.calculate_fairness_safety(self)
+                self.data_center.overall_metric_data_center.calculate_overall_throughput(self)
+
+
 
                     # self.perception_system
                 for veh_id in self.k.vehicle.get_ids():
