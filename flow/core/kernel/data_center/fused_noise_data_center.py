@@ -8,18 +8,18 @@ import pandas as pd, numpy as np
 from flow.core.kernel.data_center.base_individual_data_center import BaseDataCenter
 
 class FusedNoiseDataCenter(BaseDataCenter):
-
     def __init__(self):
-        self.dataframe = pd.DataFrame(columns=['veh_id', 'detect_type', 'value', 'step'])
+        self.columns = ['veh_id', 'detect_type', 'value', 'step']
         self.fuse_func = np.mean
-        self.dataframe_len = 0
+        self.dataframe = np.array([[0]*len(self.columns)])
 
     def update_data(self, data):
-        self.dataframe.loc[self.dataframe_len] = data
-        self.dataframe_len += 1
+        self.dataframe = np.row_stack((data, self.dataframe))
 
     def get_data(self, veh_id, detect_type, step, **kwargs):
-        return self.dataframe.loc[((self.dataframe['veh_id'] == veh_id) & (self.dataframe['detect_type'] == detect_type) & (self.dataframe['step'] == step))]['value']
+        return self.dataframe[(self.dataframe[:, 0] == veh_id)
+                              &(self.dataframe[:, 1] == detect_type)
+                              &(self.dataframe[:, 3] == str(step))][0][2]
 
     def get_fuse_function(self):
         return self.fuse_func

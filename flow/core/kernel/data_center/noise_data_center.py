@@ -6,16 +6,20 @@
 # Size of source mod 2**32: 631 bytes
 import pandas as pd
 from flow.core.kernel.data_center.base_individual_data_center import BaseDataCenter
+import numpy as np
 
 class NoiseDataCenter(BaseDataCenter):
 
     def __init__(self):
+        self.columns =['veh_id', 'detect_type', 'sensor_name', 'value', 'step']
         self.dataframe = pd.DataFrame(columns=['veh_id', 'detect_type', 'sensor_name', 'value', 'step'])
-        self.dataframe_len = 0
+        self.dataframe = np.array([[0]*len(self.columns)])
 
     def update_data(self, data):
-        self.dataframe.loc[self.dataframe_len] = data
-        self.dataframe_len += 1
+        self.dataframe = np.row_stack((data, self.dataframe))
 
-    def get_data(self, detect_type, step):
-        return self.dataframe.loc[((self.dataframe['detect_type'] == detect_type) & (self.dataframe['step'] == step))]['value']
+    def get_data(self, veh_id, detect_type, sensor_name, step):
+        return self.dataframe[(self.dataframe[:, 0] == veh_id)
+                              &(self.dataframe[:, 1] == detect_type)
+                              &(self.dataframe[:, 4] == str(step)
+                              &(self.dataframe[:, 2]) == sensor_name)][0][3]

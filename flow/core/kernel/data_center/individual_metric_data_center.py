@@ -7,13 +7,16 @@
 import pandas as pd
 from flow.core.kernel.data_center.metric_function import individual_metric_functions
 from flow.core.kernel.data_center.base_individual_data_center import BaseDataCenter
+import numpy as np
+
 
 class IndividualMetricDataCenter(BaseDataCenter):
-
     def __init__(self):
+        self.columns = ['veh_id', 'metric_type', 'value', 'step']
         self.dataframe = pd.DataFrame(columns=['veh_id', 'metric_type', 'value', 'step'])
         self.metrics = ['throughput', 'TTC']
         self.dataframe_len = 0
+        self.dataframe = np.array([[0] * len(self.columns)])
 
     def calculate_metrics(self, env, veh_id):
         for metric in self.metrics:
@@ -22,6 +25,7 @@ class IndividualMetricDataCenter(BaseDataCenter):
                 headway = env.data_center.get_data(data_center_name='sensor', veh_id=veh_id,
                   detect_type='distance',
                   step=(env.k.simulation.time))
+                print(headway)
                 headway = float(headway)
                 headway_noise = env.data_center.get_data(data_center_name='fused_noise', veh_id=veh_id,
                   detect_type='distance',
@@ -46,8 +50,11 @@ class IndividualMetricDataCenter(BaseDataCenter):
                 self.update_data(new_row)
 
     def update_data(self, data):
-        self.dataframe.loc[self.dataframe_len] = data
-        self.dataframe_len += 1
+        self.dataframe = np.row_stack((data, self.dataframe))
+        # self.dataframe.loc[self.dataframe_len] = data
+        # self.dataframe_len += 1
 
     def get_data(self, veh_id, metric_type, step, **kwargs):
-        return self.dataframe.loc[((self.dataframe['veh_id'] == veh_id) & (self.dataframe['metric_type'] == metric_type) & (self.dataframe['step'] == step))]['value']
+        return self.dataframe[(self.dataframe[:, 0] == veh_id)
+                              &(self.dataframe[:, 1] == metric_type)
+                              &(self.dataframe[:, 3] == str(step))][0][2]

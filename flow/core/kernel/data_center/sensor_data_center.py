@@ -6,16 +6,26 @@
 # Size of source mod 2**32: 668 bytes
 import pandas as pd
 from flow.core.kernel.data_center.base_individual_data_center import BaseDataCenter
+import numpy as np
+
 
 class SensorDataCenter(BaseDataCenter):
-
     def __init__(self):
-        self.dataframe = pd.DataFrame(columns=['veh_id', 'detect_type', 'value', 'step'])
+        self.columns = ['veh_id', 'detect_type', 'value', 'step']
+        self.dataframe = pd.DataFrame(columns=self.columns)
         self.dataframe_len = 0
+        self.dataframe = np.array([[0]*len(self.columns)])
 
     def update_data(self, data):
-        self.dataframe.loc[self.dataframe_len] = data
-        self.dataframe_len += 1
+        self.dataframe = np.row_stack((data, self.dataframe))
 
     def get_data(self, veh_id, detect_type, step):
-        return self.dataframe.loc[((self.dataframe['detect_type'] == detect_type) & (self.dataframe['veh_id'] == veh_id) & (self.dataframe['step'] == step))]['value']
+        num_hash = {}
+        for i in range(len(self.columns)):
+            num_hash[self.columns[i]] = i
+        return self.dataframe[(self.dataframe[:, 0] == veh_id)
+                              &(self.dataframe[:, 1] == detect_type)
+                              &(self.dataframe[:, 3] == str(step))][0][2]
+        # return self.dataframe.loc[((self.dataframe['detect_type'] == detect_type)
+        #                            & (self.dataframe['veh_id'] == veh_id)
+        #                            & (self.dataframe['step'] == str(step)))]['value']

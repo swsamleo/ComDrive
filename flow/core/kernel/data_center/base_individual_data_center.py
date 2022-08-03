@@ -5,13 +5,16 @@
 # Compiled at: 2022-08-02 12:09:46
 # Size of source mod 2**32: 204 bytes
 from abc import ABCMeta, abstractmethod
+import numpy as np
+
 
 class BaseDataCenter(metaclass=ABCMeta):
-
-    @abstractmethod
-    def update_data(self, data):
-        pass
+    def __init__(self):
+        self.dataframe = np.array([[]])
 
     @abstractmethod
     def get_data(self):
         pass
+
+    def update_data(self, data):
+        self.dataframe = np.row_stack((data, self.dataframe))

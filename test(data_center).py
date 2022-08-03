@@ -50,7 +50,7 @@ for i in range(1):
     #              color="white")
 
     vehicles.add("testing_car",
-                 acceleration_controller=(IDMController_with_noise, {"fail_safe": 'instantaneous'}),
+                 acceleration_controller=(IDMController, {"fail_safe": 'instantaneous'}),
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=20,
                  car_following_params=sumo_car_following_para1,
@@ -93,7 +93,7 @@ for i in range(1):
 
     from flow.core.params import SumoParams
 
-    sim_params = SumoParams(sim_step=0.1, render=False, emission_path='data')
+    sim_params = SumoParams(sim_step=0.1, render=True, emission_path='data')
 
     from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
 

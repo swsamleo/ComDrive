@@ -12,9 +12,9 @@ import numpy as np, math
 class OverallMetricDataCenter(BaseDataCenter):
 
     def __init__(self):
-        self.dataframe = pd.DataFrame(columns=['metric_type', 'value', 'step'])
+        self.columns = ['metric_type', 'value', 'step']
         self.metrics = []
-        self.dataframe_len = 0
+        self.dataframe = np.array([[0]*len(self.columns)])
 
     def calculate_fairness_safety(self, env, beta_para=0.5, lambda_para=1):
         veh_ids = env.k.vehicle.get_ids()
@@ -51,8 +51,8 @@ class OverallMetricDataCenter(BaseDataCenter):
         return overall_throughput
 
     def update_data(self, data):
-        self.dataframe.loc[self.dataframe_len] = data
-        self.dataframe_len += 1
+        self.dataframe = np.row_stack((data, self.dataframe))
 
-    def get_data(self, detect_type, veh_id, step, **kwargs):
-        return self.dataframe.loc[((self.dataframe['detect_type'] == detect_type) & (self.dataframe['veh_id'] == veh_id) & (self.dataframe['step'] == step))]['value']
+    def get_data(self, metric_type, step, **kwargs):
+        return self.dataframe[(self.dataframe[:, 0] == metric_type)
+                              &(self.dataframe[:, 2] == str(step))][0][1]
