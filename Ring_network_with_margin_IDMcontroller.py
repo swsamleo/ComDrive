@@ -50,7 +50,7 @@ for i in range(1):
     #              color="white")
 
     vehicles.add("testing_car",
-                 acceleration_controller=(IDMController_predict_margin_with_noise2, {"fail_safe": 'instantaneous'}),
+                 acceleration_controller=(IDMController_with_noise, {"fail_safe": 'instantaneous'}),
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=20,
                  car_following_params=sumo_car_following_para1,
@@ -503,11 +503,11 @@ for i in range(1):
         tls=traffic_lights,
         perception_system=perception_system,
         safety_system=safety_system,
-        data_center=data_center
+        data_center=None
     )
 
     # number of time steps
-    flow_params['env'].horizon = 2000
+    flow_params['env'].horizon = 100
     exp = Experiment(flow_params)
 
     # run the sumo simulation

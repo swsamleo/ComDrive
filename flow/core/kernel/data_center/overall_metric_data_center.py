@@ -12,17 +12,21 @@ import numpy as np, math
 class OverallMetricDataCenter(BaseDataCenter):
 
     def __init__(self):
-        self.columns = ['metric_type', 'value', 'step']
         self.metrics = []
-        self.dataframe = np.array([[0]*len(self.columns)])
+        self.data = {}
+
+    # def __init__(self):
+    #     self.columns = ['metric_type', 'value', 'step']
+    #     self.metrics = []
+    #     self.dataframe = np.array([[0]*len(self.columns)])
 
     def calculate_fairness_safety(self, env, beta_para=0.5, lambda_para=1):
         veh_ids = env.k.vehicle.get_ids()
         TTC_list = []
         for veh_id in veh_ids:
-            temp = env.data_center.get_data(data_center_name='individual_metric', veh_id=veh_id,
-              metric_type='TTC',
-              step=(env.k.simulation.time))
+            temp = env.k.simulation.data_center.get_data(data_center_name='individual_metric', veh_id=veh_id,
+              key='TTC',
+              t=round(env.k.simulation.time,2))
             TTC_list.append(float(temp))
 
         safety = np.sum(TTC_list)
@@ -32,27 +36,27 @@ class OverallMetricDataCenter(BaseDataCenter):
 
         fairness = lambda_para * math.log(fairness, 2.72)
         safety = math.log(safety, 2.72)
-        new_row = ['fairness_safety', fairness + safety, env.k.simulation.time]
-        self.update_data(new_row)
+        # new_row = ['fairness_safety', fairness + safety, env.k.simulation.time]
+        self.update_data(t=round(env.k.simulation.time,2), fairness_safety=fairness + safety)
         return fairness + safety
 
     def calculate_overall_throughput(self, env):
         veh_ids = env.k.vehicle.get_ids()
         throughput_list = []
         for veh_id in veh_ids:
-            temp = env.data_center.get_data(data_center_name='individual_metric', veh_id=veh_id,
-              metric_type='throughput',
-              step=(env.k.simulation.time))
+            temp = env.k.simulation.data_center.get_data(data_center_name='individual_metric', veh_id=veh_id,
+                                                        key= 'throughput',
+                                                        t=round(env.k.simulation.time,2))
             throughput_list.append(float(temp))
 
         overall_throughput = np.sum(throughput_list)
-        new_row = ['overall_throughput', overall_throughput, env.k.simulation.time]
-        self.update_data(new_row)
+        # new_row = ['overall_throughput', overall_throughput, env.k.simulation.time]
+        self.update_data(t=round(env.k.simulation.time,2), overall_throughput=overall_throughput)
         return overall_throughput
 
-    def update_data(self, data):
-        self.dataframe = np.row_stack((data, self.dataframe))
-
-    def get_data(self, metric_type, step, **kwargs):
-        return self.dataframe[(self.dataframe[:, 0] == metric_type)
-                              &(self.dataframe[:, 2] == str(step))][0][1]
+    # def update_data(self, data):
+    #     self.dataframe = np.row_stack((data, self.dataframe))
+    #
+    # def get_data(self, metric_type, step, **kwargs):
+    #     return self.dataframe[(self.dataframe[:, 0] == metric_type)
+    #                           &(self.dataframe[:, 2] == str(step))][0][1]

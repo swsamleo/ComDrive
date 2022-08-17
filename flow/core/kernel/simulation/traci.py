@@ -1,6 +1,7 @@
 """Script containing the TraCI simulation kernel class."""
 
 from flow.core.kernel.simulation import KernelSimulation
+from flow.core.kernel.data_center.data_center import DataCenter
 from flow.core.util import ensure_dir
 import flow.config as config
 import traci.constants as tc
@@ -66,6 +67,8 @@ class TraCISimulation(KernelSimulation):
         self.emission_path = None
         self.time = 0
         self.stored_data = dict()
+        self.data_center = DataCenter()
+
 
     def pass_api(self, kernel_api):
         """See parent class.
@@ -323,13 +326,67 @@ class TraCISimulation(KernelSimulation):
                 final_data['id'].append(veh_id)
                 for key in stored_ids:
                     final_data[key].append(self.stored_data[veh_id][t][key])
-
+        print(name)
         with open(os.path.join(self.emission_path, name), "w") as f:
             print(os.path.join(self.emission_path, name), self.emission_path)
             writer = csv.writer(f, delimiter=',')
             writer.writerow(final_data.keys())
             writer.writerows(zip(*final_data.values()))
 
+
+        def output_csv(ids, data, specific_file_name, has_veh_id_dimension):
+            if has_veh_id_dimension:
+                final_data = {"time": [], "id": []}
+                final_data.update({key: [] for key in ids})
+                for veh_id in data.keys():
+                    for t in data[veh_id].keys():
+                        final_data['time'].append(t)
+                        final_data['id'].append(veh_id)
+                        for key in ids:
+                            final_data[key].append(data[veh_id][t][key])
+            else:
+                final_data = {"time": []}
+                final_data.update({key: [] for key in ids})
+                for t in data.keys():
+                    final_data['time'].append(t)
+                    for key in ids:
+                        final_data[key].append(data[t][key])
+            with open(os.path.join(self.emission_path, specific_file_name + "_" + name), "w") as f:
+                writer = csv.writer(f, delimiter=',')
+                writer.writerow(final_data.keys())
+                writer.writerows(zip(*final_data.values()))
+
+        output_csv(ids=["headway","velocity"],
+                   data=self.data_center.sensor_data_center.data,
+                   specific_file_name="sensor",
+                   has_veh_id_dimension=True)
+        output_csv(ids=["headway_noise"],
+                   data=self.data_center.fused_noise_data_center.data,
+                   specific_file_name="noise",
+                   has_veh_id_dimension=True)
+        output_csv(ids=["fairness_safety", "overall_throughput"],
+                   data=self.data_center.overall_metric_data_center.data,
+                   specific_file_name="overall_metric",
+                   has_veh_id_dimension=False)
+        output_csv(ids=["TTC", "throughput"],
+                   data=self.data_center.individual_metric_data_center.data,
+                   specific_file_name="individual_metric",
+                   has_veh_id_dimension=True)
+        # sensor_ids = ["headway","velocity"]
+        # final_data = {"time": [], "id": []}
+        # final_data.update({key: [] for key in sensor_ids})
+        # for veh_id in self.data_center.sensor_data_center.data.keys():
+        #     for t in self.data_center.sensor_data_center.data[veh_id].keys():
+        #         final_data['time'].append(t)
+        #         final_data['id'].append(veh_id)
+        #         for key in sensor_ids:
+        #             final_data[key].append(self.data_center.sensor_data_center.data[veh_id][t][key])
+        #             print(self.data_center.sensor_data_center.data[veh_id][t][key])
+        #
+        # with open(os.path.join(self.emission_path, "sensor" + name), "w") as f:
+        #     writer = csv.writer(f, delimiter=',')
+        #     writer.writerow(final_data.keys())
+        #     writer.writerows(zip(*final_data.values()))
         # Clear all memory from the stored data. This is useful if this
         # function is called in between resets.
         self.stored_data.clear()

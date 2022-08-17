@@ -9,17 +9,25 @@ from flow.core.kernel.data_center.base_individual_data_center import BaseDataCen
 
 class FusedNoiseDataCenter(BaseDataCenter):
     def __init__(self):
-        self.columns = ['veh_id', 'detect_type', 'value', 'step']
         self.fuse_func = np.mean
-        self.dataframe = np.array([[0]*len(self.columns)])
-
-    def update_data(self, data):
-        self.dataframe = np.row_stack((data, self.dataframe))
-
-    def get_data(self, veh_id, detect_type, step, **kwargs):
-        return self.dataframe[(self.dataframe[:, 0] == veh_id)
-                              &(self.dataframe[:, 1] == detect_type)
-                              &(self.dataframe[:, 3] == str(step))][0][2]
+        self.data = {}
 
     def get_fuse_function(self):
         return self.fuse_func
+
+
+    # def __init__(self):
+    #     self.columns = ['veh_id', 'detect_type', 'value', 'step']
+    #     self.fuse_func = np.mean
+    #     self.dataframe = np.array([[0]*len(self.columns)])
+    #
+    # def update_data(self, data):
+    #     self.dataframe = np.row_stack((data, self.dataframe))
+    #
+    # def get_data(self, veh_id, detect_type, step, **kwargs):
+    #     return self.dataframe[(self.dataframe[:, 0] == veh_id)
+    #                           &(self.dataframe[:, 1] == detect_type)
+    #                           &(self.dataframe[:, 3] == str(step))][0][2]
+    #
+    # def get_fuse_function(self):
+    #     return self.fuse_func

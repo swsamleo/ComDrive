@@ -10,11 +10,22 @@ import numpy as np
 
 class BaseDataCenter(metaclass=ABCMeta):
     def __init__(self):
-        self.dataframe = np.array([[]])
+        self.data = {}
 
-    @abstractmethod
-    def get_data(self):
-        pass
+    def update_data(self, t, veh_id=None, **kwarg):
+        if veh_id:
+            if veh_id not in self.data.keys():
+                self.data[veh_id] = {}
+            if t not in self.data[veh_id].keys():
+                self.data[veh_id][t] = {}
+            self.data[veh_id][t].update(**kwarg)
+        else:
+            if t not in self.data.keys():
+                self.data[t] = {}
+            self.data[t].update(**kwarg)
 
-    def update_data(self, data):
-        self.dataframe = np.row_stack((data, self.dataframe))
+    def get_data(self, t, key, veh_id=None, ):
+        if veh_id:
+            return self.data[veh_id][t][key]
+        else:
+            return self.data[t][key]

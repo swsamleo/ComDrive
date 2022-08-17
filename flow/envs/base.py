@@ -348,65 +348,97 @@ class Env(gym.Env, metaclass=ABCMeta):
 
             if len(self.k.vehicle.get_ids()) > 0:
                 for veh_id in self.k.vehicle.get_ids():
-                    t1 = time.time()
                     sensor_system = self.k.vehicle.get_sensor_system(veh_id)
-                    t2 = time.time()
-                    print("1",(t2-t1)*100)
-                    t1 = time.time()
                     distance_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'distance')
-                    t2 = time.time()
-                    print("2", (t2 - t1) * 100)
-                    t1 = time.time()
-                    self.data_center.update_data(data_center_name='sensor', data=[
-                        veh_id, 'distance', distance_data, self.k.simulation.time])
-                    t2 = time.time()
-                    print("3", (t2 - t1) * 100)
+                    self.k.simulation.data_center.update_data(data_center_name='sensor',
+                                                              veh_id=veh_id,
+                                                              t=round(self.k.simulation.time,2),
+                                                              headway=distance_data)
                     velocity_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'velocity')
-                    self.data_center.update_data(data_center_name='sensor', data=[
-                        veh_id, 'velocity', velocity_data, self.k.simulation.time])
+                    self.k.simulation.data_center.update_data(data_center_name='sensor',
+                                                              veh_id=veh_id,
+                                                              t=round(self.k.simulation.time,2),
+                                                              velocity=velocity_data)
                     distance_noise_list = []
-                    t1 = time.time()
-                    fuse_function = self.data_center.fused_noise_data_center.get_fuse_function()
-                    t2 = time.time()
-                    print("4", (t2 - t1) * 100)
-                    t1 = time.time()
+                    fuse_function = self.k.simulation.data_center.fused_noise_data_center.get_fuse_function()
                     for sensor_infor in sensor_system.get_sensors():
                         detect_type = sensor_infor[0]
                         sensor_name = sensor_infor[1]
                         noise_function = sensor_infor[2]
                         noise = noise_function()
-                        self.data_center.update_data(data_center_name='individual_noise', data=[
-                            veh_id, detect_type, sensor_name, noise, self.k.simulation.time])
                         if detect_type == 'distance':
                             distance_noise_list.append(noise)
-                    t2 = time.time()
-                    print("5", (t2 - t1) * 100)
                     fused_distance_noise = fuse_function(distance_noise_list)
-                    self.data_center.update_data(data_center_name='fused_noise', data=[
-                        veh_id, 'distance', fused_distance_noise, self.k.simulation.time])
-                for veh_id in self.k.vehicle.get_ids():
-                    self.data_center.individual_metric_data_center.calculate_metrics(self, veh_id)
+                    self.k.simulation.data_center.update_data(data_center_name='fused_noise',
+                                                 veh_id=veh_id,
+                                                 headway_noise=fused_distance_noise,
+                                                 t=round(self.k.simulation.time,2))
+            for veh_id in self.k.vehicle.get_ids():
+                self.k.simulation.data_center.individual_metric_data_center.calculate_metrics(self, veh_id)
+            self.k.simulation.data_center.overall_metric_data_center.calculate_fairness_safety(self)
+            self.k.simulation.data_center.overall_metric_data_center.calculate_overall_throughput(self)
 
-                self.data_center.overall_metric_data_center.calculate_fairness_safety(self)
-                self.data_center.overall_metric_data_center.calculate_overall_throughput(self)
+            # if len(self.k.vehicle.get_ids()) > 0:
+            #     for veh_id in self.k.vehicle.get_ids():
+            #         t1 = time.time()
+            #         sensor_system = self.k.vehicle.get_sensor_system(veh_id)
+            #         t2 = time.time()
+            #         print("1",(t2-t1)*100)
+            #         t1 = time.time()
+            #         distance_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'distance')
+            #         t2 = time.time()
+            #         print("2", (t2 - t1) * 100)
+            #         t1 = time.time()
+            #         self.data_center.update_data(data_center_name='sensor', data=[
+            #             veh_id, 'distance', distance_data, self.k.simulation.time])
+            #         t2 = time.time()
+            #         print("3", (t2 - t1) * 100)
+            #         velocity_data = sensor_system.detect_sensor_data_from_env(self, veh_id, 'velocity')
+            #         self.data_center.update_data(data_center_name='sensor', data=[
+            #             veh_id, 'velocity', velocity_data, self.k.simulation.time])
+            #         distance_noise_list = []
+            #         t1 = time.time()
+            #         fuse_function = self.data_center.fused_noise_data_center.get_fuse_function()
+            #         t2 = time.time()
+            #         print("4", (t2 - t1) * 100)
+            #         t1 = time.time()
+            #         for sensor_infor in sensor_system.get_sensors():
+            #             detect_type = sensor_infor[0]
+            #             sensor_name = sensor_infor[1]
+            #             noise_function = sensor_infor[2]
+            #             noise = noise_function()
+            #             self.data_center.update_data(data_center_name='individual_noise', data=[
+            #                 veh_id, detect_type, sensor_name, noise, self.k.simulation.time])
+            #             if detect_type == 'distance':
+            #                 distance_noise_list.append(noise)
+            #         t2 = time.time()
+            #         print("5", (t2 - t1) * 100)
+            #         fused_distance_noise = fuse_function(distance_noise_list)
+            #         self.data_center.update_data(data_center_name='fused_noise', data=[
+            #             veh_id, 'distance', fused_distance_noise, self.k.simulation.time])
+            #     for veh_id in self.k.vehicle.get_ids():
+            #         self.data_center.individual_metric_data_center.calculate_metrics(self, veh_id)
+            #
+            #     self.data_center.overall_metric_data_center.calculate_fairness_safety(self)
+            #     self.data_center.overall_metric_data_center.calculate_overall_throughput(self)
 
 
                     # self.perception_system
-                for veh_id in self.k.vehicle.get_ids():
-                    self_velocity = self.perception_system.get_data_without_noise("velocity", veh_id)
-                    lead_veh_id = self.k.vehicle.get_leader(veh_id)
-                    if lead_veh_id:
-                        lead_velocity = self.perception_system.get_data_without_noise("velocity", lead_veh_id)
-                        headway = self.perception_system.get_data_without_noise("distance", veh_id)
-                        self.safety_system.calculate_safety_metrics(veh_id=veh_id,
-                                                                    headway=headway,
-                                                                    self_velocity=self_velocity,
-                                                                    lead_velocity=lead_velocity)
-                    else:
-                        self.safety_system.calculate_safety_metrics(veh_id=veh_id,
-                                                                    headway=1e5,
-                                                                    self_velocity=self_velocity,
-                                                                    lead_velocity=1e3)
+            for veh_id in self.k.vehicle.get_ids():
+                self_velocity = self.perception_system.get_data_without_noise("velocity", veh_id)
+                lead_veh_id = self.k.vehicle.get_leader(veh_id)
+                if lead_veh_id:
+                    lead_velocity = self.perception_system.get_data_without_noise("velocity", lead_veh_id)
+                    headway = self.perception_system.get_data_without_noise("distance", veh_id)
+                    self.safety_system.calculate_safety_metrics(veh_id=veh_id,
+                                                                headway=headway,
+                                                                self_velocity=self_velocity,
+                                                                lead_velocity=lead_velocity)
+                else:
+                    self.safety_system.calculate_safety_metrics(veh_id=veh_id,
+                                                                headway=1e5,
+                                                                self_velocity=self_velocity,
+                                                                lead_velocity=1e3)
                 # print(self.safety_system.get_fairness_metric(0.09,0.1))
                 # print(self.perception_system.get_traffic_throughput(self.k.vehicle.get_ids()))
 
