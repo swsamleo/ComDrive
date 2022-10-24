@@ -102,10 +102,8 @@ Simulation with noise and without noise result:
 
 Untrained model:
 
-[video](pic_readme/gaussian_5_untrained.mp4)
-
-https://github.com/swsamleo/ComDrive/edit/master/pic_readme/gaussian_5_untrained.mp4
+https://user-images.githubusercontent.com/60811412/197476170-423a5b49-3786-4165-9602-709039d5c627.mp4
 
 Trained model:
 
-[video](pic_readme/gaussian_5_train.mp4)
+https://user-images.githubusercontent.com/60811412/197476113-32f6e807-faef-4097-a0c9-901f0eb6e31c.mp4
