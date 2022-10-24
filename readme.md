@@ -94,7 +94,7 @@ We use IDMController and BandoFTLController to validate the effectiveness of our
 
 Gaussian noise with $\mu=5$
 
-[video](pic_readme/gaussian_5.mp4)
+https://user-images.githubusercontent.com/60811412/197476012-7e83067d-0fcf-427d-b291-ad974f044a26.mp4
 
 Simulation with noise and without noise result:
 
