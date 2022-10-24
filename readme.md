@@ -94,15 +94,17 @@ We use IDMController and BandoFTLController to validate the effectiveness of our
 
 Gaussian noise with $\mu=5$
 
-<video src="pic_readme/gaussian_5.mp4"></video>
+[video](pic_readme/gaussian_5.mp4)
+
+Simulation with noise and without noise result:
 
 ![gaussian_5](pic_readme/gaussian_5.png)
 
-Gaussian_5 untrained
+Untrained model:
 
-<video src="pic_readme/gaussian_5_untrained.mp4"></video>
+[video](pic_readme/gaussian_5_untrained.mp4)
 
 
-Gaussian_5 trained model
+Trained model:
 
-<video src="pic_readme/gaussian_5_train.mp4"></video>
+[video](pic_readme/gaussian_5_train.mp4)
