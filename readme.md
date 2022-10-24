@@ -88,7 +88,7 @@ We adopt four different typical controller to evaluate the impact of noise.
 
 We use IDMController and BandoFTLController to validate the effectiveness of our proposed margin in terms of traffic throughput and safety. 
 
-![add margin](pic_readme/add margin.svg)
+![add margin](pic_readme/add_margin.svg)
 
 ## Experiment
 
