@@ -107,3 +107,20 @@ Untrained model:
 Trained model:
 
 ![Gaussian_5_train](pic_readme/gaussian_5_train.gif)
+
+# Project Status: Under Development
+## Current State of Comdrive
+We are continuously working on enhancing the Comdrive architecture. At this stage, the tool is functional yet still evolving. We are in the process of optimizing certain features to improve its performance and usability.
+
+## Ongoing Development
+- **Functionality Optimization**: Some features within Comdrive are currently under review for optimization. Our goal is to enhance these features for better efficiency and reliability.
+
+- **Feature Completion**: We are diligently working to complete the development of all planned functionalities. As we progress, updates and new features will be rolled out.
+
+## Your Feedback is Welcome
+As Comdrive is in active development, we are open to and appreciate any feedback, suggestions, or contributions that can help improve the tool. If you encounter issues or have ideas for new features, please feel free to open an issue or submit a pull request.
+
+## Future Plans
+We are committed to further developing Comdrive and will consider integrating more functionalities based on user feedback and our roadmap. Stay tuned for updates and enhancements.
+
+Thank you for your interest in Comdrive. Your support and contributions are what drive the continuous improvement of this project.
