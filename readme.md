@@ -108,19 +108,26 @@ Trained model:
 
 ![Gaussian_5_train](pic_readme/gaussian_5_train.gif)
 
-# Project Status: Under Development
-## Current State of Comdrive
-We are continuously working on enhancing the Comdrive architecture. At this stage, the tool is functional yet still evolving. We are in the process of optimizing certain features to improve its performance and usability.
+# Comdrive Project Status
+## Overview
+We're excited to share the Comdrive project with the community. Comdrive is an **in-development** simulation tool designed with specific goals in mind. It's important to note that the architecture of Comdrive is currently under development, and as such, **it may not yet offer full functionality**. Our team is diligently working to enhance its capabilities and stability.
 
-## Ongoing Development
-- **Functionality Optimization**: Some features within Comdrive are currently under review for optimization. Our goal is to enhance these features for better efficiency and reliability.
+## Current State
+- **Development Phase**: Please be aware that **Comdrive is in a development phase**. We're in the process of refining its architecture and expanding its feature set.
 
-- **Feature Completion**: We are diligently working to complete the development of all planned functionalities. As we progress, updates and new features will be rolled out.
+- **Functionality**: Some features within Comdrive are in the beta stage and may exhibit instability or limited functionality. These features are being improved with each update.
 
-## Your Feedback is Welcome
-As Comdrive is in active development, we are open to and appreciate any feedback, suggestions, or contributions that can help improve the tool. If you encounter issues or have ideas for new features, please feel free to open an issue or submit a pull request.
+- **Stability**: Given its current development status, **Comdrive may exhibit unstable behavior under certain conditions**. We are committed to improving its stability and performance.
+
+## Usage Considerations
+- **Feedback**: Users are encouraged to provide feedback on any issues encountered or suggestions for improvement. Your input is invaluable as we strive to develop Comdrive into a more robust tool.
+
+- **Updates**: Regular updates are planned for Comdrive, aimed at addressing current limitations and introducing new features. We recommend staying updated with the latest version for the best experience.
 
 ## Future Plans
-We are committed to further developing Comdrive and will consider integrating more functionalities based on user feedback and our roadmap. Stay tuned for updates and enhancements.
+- **Open Source**: While **Comdrive is not yet open-sourced due to its preliminary state**, we intend to make it publicly available once we achieve a more stable and comprehensive version. This approach ensures that the community receives a reliable and effective tool.
 
-Thank you for your interest in Comdrive. Your support and contributions are what drive the continuous improvement of this project.
+- **Collaboration**: We are open to collaboration and contributions from the community. Detailed guidelines will be provided as Comdrive progresses towards a stable release.
+
+## Contact and Support
+- For any inquiries or support needs, please contact us. We appreciate your interest in Comdrive and look forward to growing with your support.
