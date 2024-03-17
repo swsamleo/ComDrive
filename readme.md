@@ -110,14 +110,14 @@ Trained model:
 
 # Comdrive Project Status
 ## Overview
-We're excited to share the Comdrive project with the community. Comdrive is an **in-development** simulation tool designed with specific goals in mind. It's important to note that the architecture of Comdrive is currently under development, and as such, **it may not yet offer full functionality**. Our team is diligently working to enhance its capabilities and stability.
+We're excited to share the Comdrive project with the community. Comdrive is an <font size=5>**in-development**</font> simulation tool designed with specific goals in mind. It's important to note that the architecture of Comdrive is currently under development, and as such, <font size=5>**it may not yet offer full functionality**</font>. Our team is diligently working to enhance its capabilities and stability.
 
 ## Current State
-- **Development Phase**: Please be aware that **Comdrive is in a development phase**. We're in the process of refining its architecture and expanding its feature set.
+- **Development Phase**: Please be aware that <font size=5>**Comdrive is in a development phase**</font>. We're in the process of refining its architecture and expanding its feature set.
 
 - **Functionality**: Some features within Comdrive are in the beta stage and may exhibit instability or limited functionality. These features are being improved with each update.
 
-- **Stability**: Given its current development status, **Comdrive may exhibit unstable behavior under certain conditions**. We are committed to improving its stability and performance.
+- **Stability**: Given its current development status, <font size=5>**Comdrive may exhibit unstable behavior under certain conditions**</font>. We are committed to improving its stability and performance.
 
 ## Usage Considerations
 - **Feedback**: Users are encouraged to provide feedback on any issues encountered or suggestions for improvement. Your input is invaluable as we strive to develop Comdrive into a more robust tool.
@@ -125,7 +125,7 @@ We're excited to share the Comdrive project with the community. Comdrive is an *
 - **Updates**: Regular updates are planned for Comdrive, aimed at addressing current limitations and introducing new features. We recommend staying updated with the latest version for the best experience.
 
 ## Future Plans
-- **Open Source**: While **Comdrive is not yet open-sourced due to its preliminary state**, we intend to make it publicly available once we achieve a more stable and comprehensive version. This approach ensures that the community receives a reliable and effective tool.
+- **Open Source**: While <font size=5>**Comdrive is not yet open-sourced due to its preliminary state**</font>, we intend to make it publicly available once we achieve a more stable and comprehensive version. This approach ensures that the community receives a reliable and effective tool.
 
 - **Collaboration**: We are open to collaboration and contributions from the community. Detailed guidelines will be provided as Comdrive progresses towards a stable release.
 
